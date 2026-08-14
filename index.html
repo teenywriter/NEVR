@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEVR — Zero-Server Tools for India. No Signups. No Servers. No Catch.</title>
+<meta name="description" content="13 fast, free browser-based tools built for Indian creators and independent operators — invoicing, GST, UPI QR, salary, and more. Nothing ever leaves your device.">
+<link rel="canonical" href="https://nevr.dpdns.org/">
+<meta name="theme-color" content="#030509">
+
+<!-- favicon -->
+<link rel="icon" type="image/png" sizes="32x32" href="nevrwhite.png">
+<link rel="apple-touch-icon" href="nevrwhite.png">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NEVR">
+<meta property="og:title" content="NEVR — Zero-Server Tools for India">
+<meta property="og:description" content="13 fast, free browser-based tools — invoicing, GST, UPI QR, salary, and more. No sign-ups. No servers. No catch.">
+<meta property="og:url" content="https://nevr.dpdns.org/">
+<meta property="og:image" content="https://nevr.dpdns.org/nevrwhite.png">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NEVR — Zero-Server Tools for India">
+<meta name="twitter:description" content="13 fast, free browser-based tools — invoicing, GST, UPI QR, salary, and more. No sign-ups. No servers. No catch.">
+<meta name="twitter:image" content="https://nevr.dpdns.org/nevrwhite.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#030509;
+    --panel:#090c14;
+    --panel-2:#0c1120;
+    --line:#1b2440;
+    --line-soft:#12172a;
+    --royal:#3355ff;
+    --royal-bright:#6e85ff;
+    --royal-dim:#1a2a80;
+    --ink:#edeff7;
+    --dim:#7c84a0;
+    --dim-2:#4b5170;
+
+    --f-display:'Space Grotesk', sans-serif;
+    --f-body:'Inter', sans-serif;
+    --f-mono:'JetBrains Mono', monospace;
+
+    --edge:2px;
+    --container:1240px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:var(--f-body);
+    line-height:1.6;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--royal); color:#fff; }
+
+  /* ---------- brand scrollbar ---------- */
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-track{ background:var(--void); }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border:2px solid var(--void); }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--royal); }
+  html{ scrollbar-color:var(--line) var(--void); scrollbar-width:thin; }
+
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+  img,svg{ display:block; max-width:100%; }
+  button{ font:inherit; color:inherit; background:none; border:none; }
+  input{ font:inherit; color:inherit; }
+
+  /* ---------- pointer-device custom cursor ---------- */
+  html.has-cursor, html.has-cursor *{ cursor:none !important; }
+  #cursor-canvas{
+    position:fixed; top:0; left:0; z-index:9999;
+    pointer-events:none; mix-blend-mode:normal;
+  }
+
+  /* ---------- fixed net-grid backdrop ---------- */
+  .grid-field{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(51,85,255,.10) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(51,85,255,.10) 1px, transparent 1px);
+    background-size:64px 64px;
+    background-position:center;
+    mask-image:radial-gradient(ellipse 85% 70% at 50% 0%, #000 40%, transparent 92%);
+    -webkit-mask-image:radial-gradient(ellipse 85% 70% at 50% 0%, #000 40%, transparent 92%);
+    animation:drift 90s linear infinite;
+  }
+  @keyframes drift{ to{ background-position:64px 64px; } }
+
+  .glow{
+    position:fixed; z-index:0; pointer-events:none;
+    width:900px; height:900px; top:-420px; left:50%; transform:translateX(-50%);
+    background:radial-gradient(circle, rgba(51,85,255,.22) 0%, rgba(51,85,255,.05) 45%, transparent 70%);
+    filter:blur(10px);
+  }
+
+  section, header, footer, nav{ position:relative; z-index:1; }
+
+  .wrap{ max-width:var(--container); margin:0 auto; padding:0 32px; }
+
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--f-mono); font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--royal-bright);
+    border:1px solid var(--line); padding:7px 14px;
+    background:rgba(51,85,255,.06);
+  }
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:sticky; top:0; z-index:50;
+    background:transparent; backdrop-filter:none;
+    border-bottom:1px solid transparent;
+    transition:background .3s ease, border-color .3s ease, backdrop-filter .3s ease;
+  }
+  .nav.is-scrolled{
+    background:rgba(3,5,9,.82); backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .nav .wrap{ height:74px; display:flex; align-items:center; justify-content:space-between; }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:var(--f-display); font-weight:700; font-size:19px; letter-spacing:-.01em; }
+  .brand-mark{
+    width:30px; height:30px; object-fit:contain;
+    position:relative;
+  }
+  .brand-mark::after{
+    content:''; position:absolute; inset:-5px; border:1px solid var(--line-soft);
+  }
+  .nav-links{ display:flex; align-items:center; gap:36px; }
+  .nav-links a{
+    font-family:var(--f-mono); font-size:13px; color:var(--dim);
+    letter-spacing:.03em; transition:color .2s ease; position:relative;
+  }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a::before{ content:'/ '; color:var(--dim-2); }
+  .nav-cta{
+    font-family:var(--f-mono); font-size:12px; letter-spacing:.05em;
+    border:1px solid var(--royal); color:var(--ink); padding:9px 16px;
+    background:rgba(51,85,255,.08); transition:background .2s ease, border-color .2s ease;
+  }
+  .nav-cta:hover{ background:var(--royal); border-color:var(--royal); }
+  .nav-data-badge{
+    display:none; align-items:center; gap:7px;
+    font-family:var(--f-mono); font-size:11px; letter-spacing:.03em; color:var(--royal-bright);
+    border:1px solid var(--royal-dim); background:rgba(51,85,255,.08);
+    padding:8px 12px; cursor:pointer; transition:border-color .2s ease, background .2s ease;
+  }
+  .nav-data-badge:hover{ border-color:var(--royal); background:rgba(51,85,255,.14); }
+  .nav-data-badge.is-active{ display:flex; }
+  .nav-data-badge .dot{ width:6px; height:6px; background:var(--royal-bright); border-radius:50%; flex:none; animation:pulse 2s ease-in-out infinite; }
+  .nav-toggle{ display:none; width:34px; height:34px; border:1px solid var(--line); align-items:center; justify-content:center; }
+  .nav-toggle span, .nav-toggle span::before, .nav-toggle span::after{
+    content:''; display:block; width:16px; height:1px; background:var(--ink); position:relative;
+  }
+  .nav-toggle span::before{ position:absolute; top:-5px; }
+  .nav-toggle span::after{ position:absolute; top:5px; }
+
+  /* ---------- hero ---------- */
+  .hero{ padding:96px 0 60px; overflow:hidden; }
+  .hero .wrap{ display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; }
+  .hero-copy{ position:relative; }
+  .hero-copy .eyebrow{ margin-bottom:26px; }
+  .hero h1{
+    font-family:var(--f-display); font-weight:700; font-size:clamp(38px,5.2vw,64px);
+    line-height:1.04; letter-spacing:-.02em; margin-bottom:22px;
+  }
+  .hero h1 em{
+    font-style:normal; color:var(--royal-bright);
+    background:linear-gradient(180deg, transparent 62%, rgba(51,85,255,.28) 62%);
+  }
+  .hero p.lead{ font-size:17px; color:var(--dim); max-width:46ch; margin-bottom:34px; }
+
+  .search-box{
+    display:flex; align-items:center; gap:10px;
+    border:1px solid var(--line); background:var(--panel);
+    padding:15px 18px; max-width:460px;
+  }
+  .search-box:focus-within{ border-color:var(--royal); box-shadow:0 0 0 3px rgba(51,85,255,.12); }
+  .search-box svg{ flex:none; color:var(--dim); }
+  .search-box input{
+    background:none; border:none; outline:none; width:100%;
+    font-family:var(--f-mono); font-size:13.5px; color:var(--ink);
+  }
+  .search-box input::placeholder{ color:var(--dim-2); }
+  .search-box kbd{
+    font-family:var(--f-mono); font-size:10.5px; color:var(--dim-2);
+    border:1px solid var(--line); padding:2px 6px; flex:none;
+  }
+
+  .scroll-cue{
+    margin-top:46px; display:inline-flex; align-items:center; gap:10px;
+    font-family:var(--f-mono); font-size:11.5px; color:var(--dim-2); letter-spacing:.06em;
+  }
+  .scroll-cue .arrow{ width:1px; height:26px; background:linear-gradient(var(--royal), transparent); position:relative; animation:cue 1.8s ease-in-out infinite; }
+  @keyframes cue{ 0%,100%{ opacity:.3; } 50%{ opacity:1; } }
+
+  .hero-visual{ position:relative; height:520px; }
+  #globe-hero{ width:100%; height:100%; }
+
+  .hud{
+    position:absolute; font-family:var(--f-mono); font-size:10.5px; color:var(--dim);
+    border:1px solid var(--line-soft); padding:9px 11px; letter-spacing:.04em;
+    background:rgba(9,12,20,.6); backdrop-filter:blur(6px);
+  }
+  .hud-tl{ top:0; left:0; }
+  .hud-br{ bottom:0; right:0; text-align:right; }
+  .hud b{ color:var(--royal-bright); font-weight:500; }
+  .hud .dot{ display:inline-block; width:6px; height:6px; background:var(--royal-bright); border-radius:50%; margin-right:6px; animation:pulse 2s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.25; } }
+
+  .corner{ position:absolute; width:22px; height:22px; border-color:var(--line); }
+  .corner.tl{ top:-10px; left:-10px; border-top:1px solid var(--royal); border-left:1px solid var(--royal); }
+  .corner.br{ bottom:-10px; right:-10px; border-bottom:1px solid var(--royal); border-right:1px solid var(--royal); }
+
+  /* ---------- reveal utility ---------- */
+  .reveal{ opacity:0; transform:translateY(22px); transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+  .reveal.is-visible{ opacity:1; transform:none; }
+
+  /* ---------- section shell ---------- */
+  .section{ padding:120px 0; border-top:1px solid var(--line-soft); }
+  .section-head{ max-width:640px; margin-bottom:56px; }
+  .section-head .eyebrow{ margin-bottom:20px; }
+  .section-head h2{
+    font-family:var(--f-display); font-weight:600; font-size:clamp(24px,2.6vw,34px);
+    letter-spacing:.02em; line-height:1.15; text-transform:uppercase;
+  }
+
+  /* ---------- philosophy ---------- */
+  .philosophy .wrap{ display:grid; grid-template-columns:.95fr 1.05fr; gap:64px; align-items:start; }
+  .philosophy h2{
+    font-family:var(--f-display); font-weight:600; font-size:clamp(26px,3vw,36px);
+    letter-spacing:-.01em; line-height:1.2; margin-bottom:20px;
+  }
+  .philosophy .body p{ color:var(--dim); margin-bottom:18px; font-size:15.5px; }
+  .philosophy .body strong{ color:var(--ink); font-weight:600; }
+
+  .terminal{
+    border:1px solid var(--line); background:var(--panel);
+  }
+  .terminal-bar{
+    display:flex; align-items:center; gap:8px; padding:12px 16px;
+    border-bottom:1px solid var(--line-soft); font-family:var(--f-mono); font-size:11px; color:var(--dim-2);
+  }
+  .terminal-bar span{ width:9px; height:9px; border:1px solid var(--line); }
+  .terminal-body{ padding:24px; font-family:var(--f-mono); font-size:13px; line-height:2; color:var(--dim); }
+  .terminal-body .c1{ color:var(--dim-2); }
+  .terminal-body .c2{ color:var(--royal-bright); }
+  .terminal-body .c3{ color:var(--ink); }
+
+  /* ---------- manifesto ---------- */
+  .manifesto{ border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); background:var(--panel-2); }
+  .manifesto-inner{
+    border:1px solid var(--royal-dim); background:linear-gradient(180deg, rgba(51,85,255,.06), transparent 60%);
+    padding:56px;
+  }
+  .manifesto h2{
+    font-family:var(--f-display); font-weight:600; font-size:clamp(26px,3.2vw,38px);
+    letter-spacing:-.015em; margin-bottom:16px; max-width:22ch;
+  }
+  .manifesto > .wrap > p{ color:var(--dim); max-width:64ch; margin-bottom:44px; font-size:15.5px; }
+  .manifesto-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line-soft); border:1px solid var(--line-soft); margin-bottom:36px; }
+  .m-item{ background:var(--void); padding:26px; }
+  .m-item .idx{ font-family:var(--f-mono); font-size:11px; color:var(--royal-bright); border:1px solid var(--line); width:26px; height:26px; display:grid; place-items:center; margin-bottom:16px; }
+  .m-item h3{ font-family:var(--f-display); font-size:14.5px; font-weight:600; margin-bottom:8px; letter-spacing:.03em; text-transform:uppercase; }
+  .m-item p{ font-size:13.5px; color:var(--dim); }
+  .manifesto-close{ font-family:var(--f-display); font-size:18px; font-weight:500; color:var(--ink); }
+  .manifesto-close span{ color:var(--royal-bright); }
+
+  /* ---------- t-hub ---------- */
+  .tool-grid .section-head{ display:flex; align-items:flex-end; justify-content:space-between; max-width:none; gap:24px; flex-wrap:wrap; }
+  .grid-count{ font-family:var(--f-mono); font-size:12px; color:var(--dim-2); border:1px solid var(--line-soft); padding:8px 12px; white-space:nowrap; }
+  .grid-count b{ color:var(--royal-bright); font-weight:500; }
+
+  .category{ margin-bottom:68px; }
+  .category:last-child{ margin-bottom:0; }
+  .cat-head{ display:flex; align-items:center; gap:14px; margin-bottom:26px; }
+  .cat-badge{
+    width:40px; height:40px; border:1px solid var(--line); display:grid; place-items:center;
+    font-family:var(--f-mono); color:var(--royal-bright); font-size:15px; flex:none;
+    background:rgba(51,85,255,.05);
+  }
+  .cat-titles{ display:flex; flex-direction:column; gap:3px; }
+  .cat-head h3{ font-family:var(--f-display); font-size:17px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; }
+  .cat-tag{ font-family:var(--f-mono); font-size:11.5px; color:var(--dim); letter-spacing:.01em; text-transform:none; }
+  .cat-head .cat-sub{ font-family:var(--f-mono); font-size:11.5px; color:var(--dim-2); margin-left:auto; flex-shrink:0; }
+
+  .cards{ display:grid; grid-template-columns:repeat(auto-fill, minmax(270px, 1fr)); gap:1px; background:var(--line-soft); border:1px solid var(--line-soft); }
+  .card{
+    background:var(--void); padding:26px; position:relative; overflow:hidden;
+    transition:background .25s ease, transform .25s ease;
+    display:flex; flex-direction:column; min-height:172px;
+  }
+  .card::before{
+    content:''; position:absolute; inset:0; opacity:0; pointer-events:none;
+    background:linear-gradient(135deg, rgba(51,85,255,.12), transparent 60%);
+    transition:opacity .25s ease;
+  }
+  .card:hover{ background:var(--panel); transform:translateY(-3px); }
+  .card:hover::before{ opacity:1; }
+  .card-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .card-ref{ font-family:var(--f-mono); font-size:10.5px; color:var(--dim-2); letter-spacing:.05em; }
+  .card-arrow{ font-family:var(--f-mono); font-size:14px; color:var(--dim-2); transition:transform .25s ease, color .25s ease; }
+  .card:hover .card-arrow{ transform:translate(3px,-3px); color:var(--royal-bright); }
+  .card h4{ font-family:var(--f-display); font-size:16.5px; font-weight:600; margin-bottom:10px; letter-spacing:0; }
+  .card p{ font-size:13.5px; color:var(--dim); flex:1; }
+  .card a.card-hit{ position:absolute; inset:0; }
+
+  /* ---------- storage bar ---------- */
+  .storage-widget{
+    position:fixed; right:24px; bottom:24px; z-index:60;
+    width:328px; border:1px solid var(--line); background:rgba(9,12,20,.88);
+    backdrop-filter:blur(14px); font-family:var(--f-mono);
+    transform:translateY(calc(100% + 24px)); transition:transform .45s cubic-bezier(.2,.8,.2,1);
+  }
+  .storage-widget.is-shown{ transform:translateY(0); }
+  .sw-head{ display:flex; align-items:center; gap:9px; padding:14px 16px; border-bottom:1px solid var(--line-soft); cursor:pointer; }
+  .sw-dot{ width:7px; height:7px; background:var(--royal-bright); border-radius:50%; flex:none; animation:pulse 2s ease-in-out infinite; }
+  .sw-head span{ font-size:11.5px; color:var(--dim); letter-spacing:.03em; flex:1; }
+  .sw-head .chev{ font-size:10px; color:var(--dim-2); transition:transform .25s ease; }
+  .storage-widget.is-open .chev{ transform:rotate(180deg); }
+  .sw-body{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .storage-widget.is-open .sw-body{ max-height:260px; overflow-y:auto; }
+  .sw-body-in{ padding:16px; }
+  .sw-msg{ font-size:12px; color:var(--dim); line-height:1.7; margin-bottom:12px; }
+  .sw-keys{ display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .sw-key{ display:flex; justify-content:space-between; gap:10px; font-size:11px; color:var(--dim-2); border:1px solid var(--line-soft); padding:7px 9px; }
+  .sw-key b{ color:var(--ink); font-weight:400; }
+  .sw-actions{ display:flex; gap:8px; }
+  .sw-btn{ flex:1; font-size:11px; padding:9px 10px; border:1px solid var(--line); text-align:center; letter-spacing:.02em; transition:border-color .2s ease, color .2s ease; }
+  .sw-btn:hover{ border-color:var(--royal); color:var(--royal-bright); }
+  .sw-btn.danger:hover{ border-color:#3355ff; }
+
+  /* ---------- footer ---------- */
+  footer{ border-top:1px solid var(--line-soft); padding:40px 0; }
+  footer .wrap{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+  footer .f-left, footer .f-right{ font-family:var(--f-mono); font-size:12px; color:var(--dim-2); letter-spacing:.02em; }
+  footer .f-left b{ color:var(--dim); font-weight:500; }
+  footer .f-right a{ color:var(--dim); border-bottom:1px solid var(--line); padding-bottom:1px; }
+  footer .f-right a:hover{ color:var(--royal-bright); border-color:var(--royal); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:980px){
+    .hero .wrap{ grid-template-columns:1fr; }
+    .hero-visual{ height:340px; order:-1; }
+    .philosophy .wrap{ grid-template-columns:1fr; }
+    .manifesto-grid{ grid-template-columns:1fr; }
+    .nav-links{ display:none; }
+    .nav-toggle{ display:flex; }
+  }
+  @media (max-width:640px){
+    .wrap{ padding:0 20px; }
+    .section{ padding:80px 0; }
+    .manifesto-inner{ padding:32px 24px; }
+    .storage-widget{ width:calc(100vw - 32px); right:16px; bottom:16px; }
+    .cards{ grid-template-columns:1fr; }
+    .cat-head{ flex-wrap:wrap; }
+    .cat-head .cat-sub{ margin-left:0; width:100%; margin-top:6px; }
+    #toast-container{ left:16px; right:16px; bottom:16px; }
+    .toast{ max-width:none; }
+  }
+
+  /* ---------- toast ---------- */
+  #toast-container{ position:fixed; left:24px; bottom:24px; z-index:9998; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+  .toast{
+    font-family:var(--f-mono); font-size:12px; color:var(--ink); background:var(--panel);
+    border:1px solid var(--royal-dim); padding:12px 16px; max-width:340px; line-height:1.5;
+    box-shadow:0 12px 28px -16px rgba(3,5,9,.7);
+    opacity:0; transform:translateY(8px); transition:opacity .3s ease, transform .3s ease;
+  }
+  .toast.is-shown{ opacity:1; transform:none; }
+
+  /* ---------- roast flash ---------- */
+  #roast-flash{
+    position:fixed; top:84px; right:20px; background:var(--void); border:1px solid var(--royal);
+    padding:15px; color:var(--ink); font-family:var(--f-mono); font-size:12px; line-height:1.6;
+    z-index:9999; display:none; max-width:300px; box-shadow:0 12px 28px -16px rgba(3,5,9,.7);
+  }
+  .shake{ animation:shake .5s; }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-5px); }
+    75%{ transform:translateX(5px); }
+  }
+
+  /* ---------- overclock (konami) ---------- */
+  body.is-overclocked{ --royal:#ff3333; --royal-bright:#ff6b6b; --royal-dim:#801a1a; }
+
+  /* ---------- void mode (triple-click logo) ---------- */
+  body.is-void-mode{ --void:#000000; --panel:#050505; --panel-2:#080808; }
+
+  /* ---------- ghost mode (console command) ---------- */
+  body.is-ghost-mode{ filter:grayscale(1) contrast(1.1); }
+
+  /* ---------- prem mode (gold) ---------- */
+  body.is-prem-mode{ --royal:#d4af37; --royal-bright:#f0d264; --royal-dim:#5c4a17; --void:#000000; }
+
+  /* ---------- thumb-zone mobile CTA ---------- */
+  .thumb-cta{
+    display:none; position:fixed; left:50%; bottom:20px; transform:translateX(-50%); z-index:70;
+    font-family:var(--f-mono); font-size:12.5px; letter-spacing:.03em; color:var(--ink);
+    border:1px solid var(--royal); background:rgba(3,5,9,.9); backdrop-filter:blur(10px);
+    padding:13px 22px; box-shadow:0 12px 28px -16px rgba(3,5,9,.8);
+  }
+  .thumb-cta:active{ background:var(--royal); }
+
+  /* ---------- offline banner ---------- */
+  #offline-banner{
+    display:none; position:fixed; top:0; left:0; right:0; z-index:9997;
+    background:var(--royal); color:#fff; font-family:var(--f-mono); font-size:12px;
+    text-align:center; padding:9px; letter-spacing:.02em;
+  }
+  #offline-banner.is-shown{ display:block; }
+
+  @media (max-width:640px){
+    .thumb-cta{ display:block; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+    html.has-cursor, html.has-cursor *{ cursor:auto !important; }
+    #cursor-canvas{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="cursor-canvas"></canvas>
+<div class="grid-field"></div>
+<div class="glow"></div>
+
+<nav class="nav" id="site-nav">
+  <div class="wrap">
+    <a href="#top" class="brand">
+      <img src="nevrwhite.png" class="brand-mark" id="brand-logo" alt="NEVR">
+      NEVR
+    </a>
+    <div class="nav-links">
+      <a href="#philosophy">Why.NEVR</a>
+      <a href="#trust">Privacy.Policy</a>
+      <a href="#nevr-tools">NEVR.Grid</a>
+    </div>
+    <button class="nav-data-badge" id="nav-data-badge" title="You have data saved locally on this device">
+      <span class="dot"></span><span id="nav-data-text">0 items saved locally</span>
+    </button>
+    <a href="#nevr-tools" class="nav-cta" id="nav-cta">Join the NEVR evolution</a>
+    <button class="nav-toggle" aria-label="Menu"><span></span></button>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow">✦ Premium Tools. No Subscriptions.</span>
+      <h1>Once you go <em>NEVR</em> You <em>NEVR</em> go back.</h1>
+      <p class="lead">High-performance daily utilities for anyone who values their time and privacy. No sign-ups. No paywalls. No pop-ups.</p>
+
+      <form class="search-box" id="search-form">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" placeholder="What are you wasting your time on today?" autocomplete="off">
+        <kbd id="search-kbd">⌘K</kbd>
+      </form>
+
+      <a href="#nevr-tools" class="scroll-cue">
+        <span class="arrow"></span>
+        13 tools · scroll to browse
+      </a>
+    </div>
+
+    <div class="hero-visual reveal">
+      <canvas id="globe-hero"></canvas>
+      <div class="hud hud-tl"><span class="dot"></span>STATUS <b id="hud-status">ZERO-SERVER</b></div>
+      <div class="hud hud-br">LOCAL TIME<br><b id="hud-clock">--:--:--</b></div>
+    </div>
+  </div>
+</header>
+
+<section class="philosophy section" id="philosophy">
+  <div class="wrap">
+    <div>
+      <h2>We got tired of the friction.<br>So we built the antidote.</h2>
+      <div class="body">
+        <p>We constantly found ourselves reaching for quick, reliable tools—whether it was generating a GST invoice for a shop, spinning up a UPI QR code, or quickly cleaning up text. But the free tools out there were always cluttered, slow, or quietly harvesting data.
+
+The driving mission behind NEVR has always been simple: to help people save time and get their tasks done without the headache. Whether you are running a business, handling freelance work, or just managing your day, you deserve a premium experience.</p>
+        <p> That is why we brought the full creative power of our own PixelShade Design Studios to this project.<strong> We didn't just want to build free tools; we wanted to craft a flawless, beautifully designed workspace that gives back to the community.</p>
+      </div>
+    </div>
+    <div class="terminal reveal">
+      <div class="terminal-bar"><span></span><span></span><span></span>&nbsp;nevr — origin.log</div>
+      <div class="terminal-body">
+<div><span class="c1">$</span> <span class="c3">whoami</span></div>
+<div class="c2">&gt; Designer × Developer × Independent Operator</div>
+<div>&nbsp;</div>
+<div><span class="c1">$</span> <span class="c3">cat manifesto.log</span></div>
+<div>&gt; build what you wish existed.</div>
+<div>&gt; ship with zero friction.</div>
+<div>&gt; charge nothing. log nothing.</div>
+<div>&nbsp;</div>
+<div><span class="c1">$</span> <span class="c3">ps -ef | grep servers</span></div>
+<div class="c2">&gt; no processes found. (by design)</div>
+<div>&nbsp;</div>
+<div><span class="c1">$</span> <span class="c3">status --verbose</span></div>
+<div class="c2">&gt; 13 tools online · 0 servers · 100% client-side</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="manifesto" id="trust">
+  <div class="wrap section">
+    <div class="manifesto-inner reveal">
+      <span class="eyebrow">The Trust Manifesto</span>
+      <h2 style="margin-top:24px;">Why is this free? Because we're not greedy.</h2>
+      <p>Most "free" toolkits are just data-harvesting operations in disguise. They charge you a subscription because they don't know how to build lean software. We do. NEVR runs entirely on your device — no cloud, no tracking, no hidden agendas.</p>
+<div>&nbsp;</div>
+
+      <div class="manifesto-grid">
+        <div class="m-item">
+          <div class="idx">01</div>
+          <h3>Zero Data Harvesting</h3>
+          <p>Your invoices, salary data, and private photos never leave your device. We couldn't look at your data even if we wanted to.</p>
+        </div>
+        <div class="m-item">
+          <div class="idx">02</div>
+          <h3>Zero Processing Costs</h3>
+          <p>Because your own browser does all the heavy lifting, our backend processing costs are $0 — and we pass that on to you.</p>
+        </div>
+        <div class="m-item">
+          <div class="idx">03</div>
+          <h3>Honest, Quiet Ads</h3>
+          <p>We have basic domain and hosting bills to pay, so we run a few tasteful ads. We'll never ruin your screen with pop-ups or newsletter walls.</p>
+        </div>
+      </div>
+
+      <p class="manifesto-close">Just fast, private, premium tools. <span>Forever.</span></p>
+    </div>
+  </div>
+</section>
+
+<section class="tool-grid section" id="nevr-tools">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">The NEVR · The Tools Grid</span>
+        <h2 style="margin-top:20px;">Stop the tab-switching.<br>Everything you need, right here.</h2>
+      </div>
+      <div class="grid-count"><b>13</b> tools · <b>0</b> servers · <b>$0</b> cost</div>
+    </div>
+
+    <div class="category reveal">
+      <div class="cat-head">
+        <div class="cat-badge">&lt;/&gt;</div>
+        <div class="cat-titles">
+          <h3>Developer &amp; QA Utilities</h3>
+          <p class="cat-tag">For the people who actually know how to code.</p>
+        </div>
+        <span class="cat-sub">03 tools</span>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-01</span><span class="card-arrow">↗</span></div>
+          <h4>Indian Test Data Generator</h4>
+          <p>Generate realistic Indian names, addresses, and phone numbers for QA and testing.</p>
+          <a class="card-hit" href="./indian-test-data.html" aria-label="Open Indian Test Data Generator"></a>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-02</span><span class="card-arrow">↗</span></div>
+          <h4>Indian Context Converter</h4>
+          <p>Convert numbers, currency, and dates between Indian and international formats instantly.</p>
+          <a class="card-hit" href="./indian-context-converter.html" aria-label="Open Indian Context Converter"></a>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-03</span><span class="card-arrow">↗</span></div>
+          <h4>Text Organizer</h4>
+          <p>Sort, dedupe, and clean up messy text lists in one paste.</p>
+          <a class="card-hit" href="./text-organizer.html" aria-label="Open Text Organizer"></a>
+        </article>
+      </div>
+    </div>
+
+    <div class="category reveal">
+      <div class="cat-head">
+        <div class="cat-badge">₹</div>
+        <div class="cat-titles">
+          <h3>Financial &amp; Workspace</h3>
+          <p class="cat-tag">Because paying for a basic invoice is for suckers.</p>
+        </div>
+        <span class="cat-sub">04 tools</span>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-04</span><span class="card-arrow">↗</span></div>
+          <h4>GST Invoice &amp; Quotation Generator</h4>
+          <p>Create GST-compliant invoices and quotations, ready to print or share.</p>
+          <a class="card-hit" href="./gst-invoice-generator.html" aria-label="Open GST Invoice & Quotation Generator"></a>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-05</span><span class="card-arrow">↗</span></div>
+          <h4>Take-Home Salary Visualizer</h4>
+          <p>See your real in-hand salary after tax, PF, and deductions.</p>
+          <a class="card-hit" href="./salary-visualizer.html" aria-label="Open Take-Home Salary Visualizer"></a>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-06</span><span class="card-arrow">↗</span></div>
+          <h4>EMI Pre-Payment Saver</h4>
+          <p>Calculate how much interest you save by pre-paying your loan early.</p>
+          <a class="card-hit" href="./emi-calculator.html" aria-label="Open EMI Pre-Payment Saver"></a>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-07</span><span class="card-arrow">↗</span></div>
+          <h4>Parchi — Invoice Engine</h4>
+          <p>A lightweight, zero-dependency invoice engine built for India's micro-businesses.</p>
+          <a class="card-hit" href="./parchi.html" aria-label="Open Parchi Invoice Engine"></a>
+        </article>
+      </div>
+    </div>
+
+    <div class="category reveal">
+      <div class="cat-head">
+        <div class="cat-badge">◈</div>
+        <div class="cat-titles">
+          <h3>Media &amp; Formatting</h3>
+          <p class="cat-tag">Clean up your digital mess. You're welcome.</p>
+        </div>
+        <span class="cat-sub">04 tools</span>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-08</span><span class="card-arrow">↗</span></div>
+          <h4>Photo Privacy Scrubber</h4>
+          <p>Strip EXIF metadata from your photos before you share them.</p>
+          <a class="card-hit" href="./exif-scrubber.html" aria-label="Open Photo Privacy Scrubber"></a>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-09</span><span class="card-arrow">↗</span></div>
+          <h4>Govt-Spec Image Compressor</h4>
+          <p>Compress photos to exact size and dimension specs for government forms.</p>
+          <a class="card-hit" href="./image-compressor.html" aria-label="Open Govt-Spec Image Compressor"></a>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-10</span><span class="card-arrow">↗</span></div>
+          <h4>UPI QR Builder</h4>
+          <p>Generate a scannable UPI payment QR code in seconds.</p>
+          <a class="card-hit" href="./upi-qr-builder.html" aria-label="Open UPI QR Builder"></a>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-11</span><span class="card-arrow">↗</span></div>
+          <h4>A4 Barcode Label Builder</h4>
+          <p>Design and print sheets of barcode labels on standard A4 paper.</p>
+          <a class="card-hit" href="./barcode-label-builder.html" aria-label="Open A4 Barcode Label Builder"></a>
+        </article>
+      </div>
+    </div>
+
+    <div class="category reveal">
+      <div class="cat-head">
+        <div class="cat-badge">▦</div>
+        <div class="cat-titles">
+          <h3>Everyday Workflows</h3>
+          <p class="cat-tag">Small tools. Big life changes. Less clicking.</p>
+        </div>
+        <span class="cat-sub">02 tools</span>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-12</span><span class="card-arrow">↗</span></div>
+          <h4>WhatsApp Command Center</h4>
+          <p>Save contacts, schedule messages, and manage WhatsApp links from one place.</p>
+          <a class="card-hit" href="./whatsapp-command-center.html" aria-label="Open WhatsApp Command Center"></a>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="card-ref">T-13</span><span class="card-arrow">↗</span></div>
+          <h4>Flip Clock</h4>
+          <p>A distraction-free flip clock for focus sessions and streams.</p>
+          <a class="card-hit" href="./flip-clock.html" aria-label="Open Flip Clock"></a>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="offline-banner">[OFFLINE] Connection lost. Doesn't matter — this isn't 2006. Every NEVR tool runs locally. Keep working.</div>
+
+<div class="storage-widget" id="storage-widget">
+  <div class="sw-head" id="sw-toggle">
+    <span class="sw-dot"></span>
+    <span>The Local Device Memory</span>
+    <span class="chev">▾</span>
+  </div>
+  <div class="sw-body">
+    <div class="sw-body-in">
+      <p class="sw-msg" id="sw-msg">Checking local storage…</p>
+      <div class="sw-keys" id="sw-keys"></div>
+      <div class="sw-actions">
+        <button class="sw-btn" id="sw-details">View Details</button>
+        <button class="sw-btn danger" id="sw-clear">$ rm -rf ./local-data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<div id="roast-flash"></div>
+<a href="#nevr-tools" class="thumb-cta">[ NEVR-ending Tools ]</a>
+
+<footer>
+  <div class="wrap">
+    <div class="f-left"><b>NEVR.</b> The last toolkit you'll ever bookmark.</div>
+    <div class="f-right">Designed by <a href="#top">Pixel Shade Design Studios</a> &nbsp;·&nbsp; <a href="#" id="support-dev-link">Support Developer</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var isFine = window.matchMedia('(pointer: fine)').matches;
+
+  /* ---------------- Wireframe globe engine ---------------- */
+  function buildRings(latStep, lonStep, sample){
+    var rings = [];
+    for (var lat = -80; lat <= 80; lat += latStep){
+      var ring = [];
+      var latR = lat * Math.PI/180;
+      for (var lon = 0; lon <= 360; lon += sample){
+        var lonR = lon * Math.PI/180;
+        ring.push({
+          x: Math.cos(latR)*Math.sin(lonR),
+          y: Math.sin(latR),
+          z: Math.cos(latR)*Math.cos(lonR)
+        });
+      }
+      rings.push(ring);
+    }
+    for (var lon2 = 0; lon2 < 180; lon2 += lonStep){
+      var ring2 = [];
+      var lonR2 = lon2 * Math.PI/180;
+      for (var lat2 = -90; lat2 <= 90; lat2 += sample){
+        var latR2 = lat2 * Math.PI/180;
+        ring2.push({
+          x: Math.cos(latR2)*Math.sin(lonR2),
+          y: Math.sin(latR2),
+          z: Math.cos(latR2)*Math.cos(lonR2)
+        });
+      }
+      rings.push(ring2);
+    }
+    return rings;
+  }
+
+  function drawGlobe(ctx, rings, cx, cy, radius, angleY, tiltX, colorRGB, lineW){
+    var cosA = Math.cos(angleY), sinA = Math.sin(angleY);
+    var cosT = Math.cos(tiltX), sinT = Math.sin(tiltX);
+    ctx.lineWidth = lineW;
+    for (var i=0;i<rings.length;i++){
+      var ring = rings[i];
+      var prev = null;
+      for (var j=0;j<ring.length;j++){
+        var p = ring[j];
+        var x1 = p.x*cosA + p.z*sinA;
+        var z1 = -p.x*sinA + p.z*cosA;
+        var y1 = p.y*cosT - z1*sinT;
+        var z2 = p.y*sinT + z1*cosT;
+        var sx = cx + x1*radius;
+        var sy = cy + y1*radius;
+        var depth = (z2+1)/2;
+        if (prev){
+          var a = 0.08 + depth*0.55;
+          ctx.strokeStyle = 'rgba('+colorRGB+','+a.toFixed(3)+')';
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(sx, sy);
+          ctx.stroke();
+        }
+        prev = {x:sx, y:sy};
+      }
+    }
+  }
+
+  /* ---------------- Hero globe ---------------- */
+  var heroCanvas = document.getElementById('globe-hero');
+  if (heroCanvas){
+    var hctx = heroCanvas.getContext('2d');
+    var heroRings = buildRings(18, 24, 5);
+    var heroAngle = 0;
+    var dpr = Math.min(window.devicePixelRatio||1, 2);
+
+    function sizeHero(){
+      var rect = heroCanvas.parentElement.getBoundingClientRect();
+      heroCanvas.width = rect.width*dpr;
+      heroCanvas.height = rect.height*dpr;
+      heroCanvas.style.width = rect.width+'px';
+      heroCanvas.style.height = rect.height+'px';
+    }
+    sizeHero();
+    window.addEventListener('resize', sizeHero);
+
+    function renderHero(){
+      hctx.setTransform(dpr,0,0,dpr,0,0);
+      hctx.clearRect(0,0,heroCanvas.width,heroCanvas.height);
+      var w = heroCanvas.width/dpr, h = heroCanvas.height/dpr;
+      var r = Math.min(w,h)*0.36;
+      drawGlobe(hctx, heroRings, w/2, h/2, r, heroAngle, 0.42, '110,133,255', 1);
+      if (!reduceMotion) heroAngle += 0.0028;
+      requestAnimationFrame(renderHero);
+    }
+    renderHero();
+  }
+
+  /* ---------------- Custom cursor globe ---------------- */
+  if (isFine && !reduceMotion){
+    document.documentElement.classList.add('has-cursor');
+    var cCanvas = document.getElementById('cursor-canvas');
+    var cctx = cCanvas.getContext('2d');
+    var cdpr = Math.min(window.devicePixelRatio||1, 2);
+    var CW = 56, CH = 56;
+    cCanvas.width = CW*cdpr; cCanvas.height = CH*cdpr;
+    cCanvas.style.width = CW+'px'; cCanvas.style.height = CH+'px';
+
+    var cursorRings = buildRings(30, 45, 12);
+    var mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
+    var curX = mouseX, curY = mouseY;
+    var cAngle = 0;
+    var active = false;
+    var visible = false;
+
+    window.addEventListener('mousemove', function(e){
+      mouseX = e.clientX; mouseY = e.clientY;
+      if (!visible){ visible = true; cCanvas.style.opacity = 1; }
+      var el = e.target;
+      active = !!(el.closest && el.closest('a, button, input, .card, .nav-cta, .sw-head'));
+    });
+    cCanvas.style.opacity = 0;
+    cCanvas.style.transition = 'opacity .2s ease';
+
+    function renderCursor(){
+      curX += (mouseX-curX)*0.22;
+      curY += (mouseY-curY)*0.22;
+      cctx.setTransform(cdpr,0,0,cdpr,0,0);
+      cctx.clearRect(0,0,CW,CH);
+      var r = active ? 15 : 10;
+      var color = active ? '110,133,255' : '237,239,247';
+
+      cctx.save();
+      cctx.strokeStyle = 'rgba(51,85,255,'+(active?0.9:0.55)+')';
+      cctx.lineWidth = 1;
+      var b = r + 9;
+      var t = 5;
+      // corner reticle ticks
+      [[CW/2-b,CH/2-b,1,0],[CW/2+b,CH/2-b,0,1],[CW/2-b,CH/2+b,0,-1],[CW/2+b,CH/2+b,-1,0]].forEach(function(c){
+        cctx.beginPath();
+        cctx.moveTo(c[0], c[1]);
+        cctx.lineTo(c[0]+t*(c[2]||(c[0]>CW/2?-1:1)), c[1]);
+        cctx.moveTo(c[0], c[1]);
+        cctx.lineTo(c[0], c[1]+t*(c[3]||(c[1]>CH/2?-1:1)));
+        cctx.stroke();
+      });
+      cctx.restore();
+
+      drawGlobe(cctx, cursorRings, CW/2, CH/2, r, cAngle, 0.5, color, 1);
+      cctx.fillStyle = 'rgba('+color+',0.9)';
+      cctx.beginPath();
+      cctx.arc(CW/2, CH/2, 1.4, 0, Math.PI*2);
+      cctx.fill();
+
+      cCanvas.style.transform = 'translate('+(curX-CW/2)+'px,'+(curY-CH/2)+'px)';
+      cAngle += active ? 0.09 : 0.045;
+      requestAnimationFrame(renderCursor);
+    }
+    renderCursor();
+  }
+
+  /* ---------------- Scroll reveals ---------------- */
+  var revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold:0.15, rootMargin:'0px 0px -60px 0px' });
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('is-visible'); });
+  }
+
+  /* ---------------- Nav scroll state ---------------- */
+  var siteNav = document.getElementById('site-nav');
+  function onScrollNav(){
+    if (!siteNav) return;
+    siteNav.classList.toggle('is-scrolled', window.scrollY > 8);
+  }
+  onScrollNav();
+  window.addEventListener('scroll', onScrollNav, { passive:true });
+
+  /* ---------------- Instant navigation (hover-prefetch) ---------------- */
+  (function(){
+    var prefetched = {};
+    function prefetch(href){
+      if (!href || prefetched[href]) return;
+      prefetched[href] = true;
+      var link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = href;
+      document.head.appendChild(link);
+    }
+    document.querySelectorAll('a.card-hit, a[href$=".html"]').forEach(function(a){
+      var href = a.getAttribute('href');
+      if (!href || href.indexOf('http') === 0) return;
+      a.addEventListener('mouseenter', function(){ prefetch(href); }, { once:true });
+      a.addEventListener('focus', function(){ prefetch(href); }, { once:true });
+      a.addEventListener('touchstart', function(){ prefetch(href); }, { once:true, passive:true });
+    });
+  })();
+
+  /* ---------------- Cmd/Ctrl+K to jump to search ---------------- */
+  document.addEventListener('keydown', function(e){
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
+      e.preventDefault();
+      var input = document.getElementById('search-input');
+      if (!input) return;
+      document.getElementById('nevr-tools').scrollIntoView({ behavior: reduceMotion?'auto':'smooth', block:'start' });
+      setTimeout(function(){ input.focus(); }, reduceMotion ? 0 : 350);
+    }
+  });
+  var isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  var kbdEl = document.getElementById('search-kbd');
+  if (kbdEl && !isMac) kbdEl.textContent = 'Ctrl K';
+
+  /* ---------------- Live HUD clock ---------------- */
+  var clockEl = document.getElementById('hud-clock');
+  function tickClock(){
+    if (!clockEl) return;
+    var now = new Date();
+    var opts = { timeZone:'Asia/Kolkata', hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit' };
+    try{ clockEl.textContent = now.toLocaleTimeString('en-GB', opts); }
+    catch(e){ clockEl.textContent = now.toLocaleTimeString(); }
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  /* ---------------- Search ---------------- */
+  var searchForm = document.getElementById('search-form');
+  var searchInput = document.getElementById('search-input');
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+
+  function applyFilter(q){
+    q = q.trim().toLowerCase();
+    cards.forEach(function(card){
+      var text = card.textContent.toLowerCase();
+      var match = !q || text.indexOf(q) !== -1;
+      card.style.opacity = match ? '1' : '.28';
+      card.style.filter = match ? 'none' : 'grayscale(1)';
+    });
+  }
+  if (searchInput){
+    searchInput.addEventListener('input', function(){ applyFilter(searchInput.value); });
+  }
+  if (searchForm){
+    searchForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      document.getElementById('nevr-tools').scrollIntoView({ behavior: reduceMotion?'auto':'smooth' });
+      applyFilter(searchInput.value);
+    });
+  }
+
+  /* ---------------- Local workspace widget ---------------- */
+  var widget = document.getElementById('storage-widget');
+  var swToggle = document.getElementById('sw-toggle');
+  var swMsg = document.getElementById('sw-msg');
+  var swKeys = document.getElementById('sw-keys');
+  var swClear = document.getElementById('sw-clear');
+  var swDetails = document.getElementById('sw-details');
+  var navBadge = document.getElementById('nav-data-badge');
+  var navBadgeText = document.getElementById('nav-data-text');
+
+  function humanize(key){
+    return key.replace(/[_\-]+/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2')
+      .replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  }
+
+  function refreshWidget(){
+    var keys = [];
+    try{ keys = Object.keys(localStorage); } catch(e){}
+    swKeys.innerHTML = '';
+    if (keys.length === 0){
+      swMsg.textContent = 'Your local workspace is empty. Nothing saved yet — everything runs fresh, every time.';
+      swDetails.style.display = 'none';
+      if (navBadge) navBadge.classList.remove('is-active');
+    } else {
+      swMsg.textContent = 'You have ' + keys.length + ' item' + (keys.length===1?'':'s') + ' saved locally, entirely on this device.';
+      swDetails.style.display = 'block';
+      if (navBadge){
+        navBadge.classList.add('is-active');
+        if (navBadgeText) navBadgeText.textContent = keys.length + ' item' + (keys.length===1?'':'s') + ' saved locally';
+      }
+      keys.slice(0,8).forEach(function(k){
+        var row = document.createElement('div');
+        row.className = 'sw-key';
+        var size = 0;
+        try{ size = (localStorage.getItem(k)||'').length; } catch(e){}
+        row.innerHTML = '<b>'+humanize(k)+'</b><span>'+size+' ch</span>';
+        swKeys.appendChild(row);
+      });
+      if (keys.length > 8){
+        var more = document.createElement('div');
+        more.className = 'sw-key';
+        more.innerHTML = '<span>+ '+(keys.length-8)+' more</span>';
+        swKeys.appendChild(more);
+      }
+    }
+    setTimeout(function(){ widget.classList.add('is-shown'); }, 900);
+  }
+  refreshWidget();
+
+  if (navBadge){
+    navBadge.addEventListener('click', function(){
+      widget.classList.add('is-shown', 'is-open');
+      widget.scrollIntoView({ behavior: reduceMotion?'auto':'smooth', block:'end' });
+    });
+  }
+
+  swToggle.addEventListener('click', function(){
+    widget.classList.toggle('is-open');
+  });
+  swDetails.addEventListener('click', function(){
+    widget.classList.add('is-open');
+  });
+  swClear.addEventListener('click', function(){
+    if (confirm("Are you sure? This will delete everything. You'll be back to square one. Just like before you found NEVR. Still sure?")){
+      try{ localStorage.clear(); } catch(e){}
+      refreshWidget();
+      showToast('Data purged. The device is clean. Like you never even used us. (But you know, you did.)');
+    }
+  });
+
+  /* ---------------- Toast helper ---------------- */
+  function showToast(msg, ms){
+    var container = document.getElementById('toast-container');
+    if (!container) return;
+    var t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    container.appendChild(t);
+    requestAnimationFrame(function(){ t.classList.add('is-shown'); });
+    setTimeout(function(){
+      t.classList.remove('is-shown');
+      setTimeout(function(){ t.remove(); }, 350);
+    }, ms || 4200);
+  }
+
+  /* ---------------- Hero CTA cycling ---------------- */
+  (function(){
+    var cta = document.getElementById('nav-cta');
+    if (!cta) return;
+    var base = 'Join the NEVR evolution';
+    var scrolled = 'Escape the SaaS trap';
+    var hovered = 'Click here to save money';
+    function currentBase(){ return window.scrollY > 400 ? scrolled : base; }
+    cta.textContent = currentBase();
+    window.addEventListener('scroll', function(){
+      if (!cta.matches(':hover')) cta.textContent = currentBase();
+    }, { passive:true });
+    cta.addEventListener('mouseenter', function(){ cta.textContent = hovered; });
+    cta.addEventListener('mouseleave', function(){ cta.textContent = currentBase(); });
+  })();
+
+  /* ---------------- Roast flash + dynamic tab title ---------------- */
+  var toolRoasts = {
+    "indian-test-data.html": "Generating fake data... because your real life is complicated enough.",
+    "indian-context-converter.html": "Converting formats. Don't worry, we won't tell anyone you were struggling.",
+    "text-organizer.html": "Cleaning your text. Your clipboard called—it's embarrassed by you.",
+    "gst-invoice-generator.html": "Generating bill. Try not to spend all the profit in one place.",
+    "salary-visualizer.html": "Visualizing salary. It's depressing, isn't it? At least it was free.",
+    "emi-calculator.html": "Calculating interest. The bank is crying. Good.",
+    "parchi.html": "Invoice engine active. Make it look professional so they actually pay you.",
+    "exif-scrubber.html": "Scrubbing EXIF. You're welcome for keeping your location a secret.",
+    "image-compressor.html": "Compressing image. Finally, a file size that doesn't scream 'amateur'.",
+    "upi-qr-builder.html": "Generating QR. Make sure your bank account is actually ready for the money.",
+    "barcode-label-builder.html": "Barcode ready. You're basically a warehouse manager now.",
+    "whatsapp-command-center.html": "WhatsApp ready. Try not to text your ex.",
+    "flip-clock.html": "Flip clock active. Focus, or we're disabling your internet."
+  };
+  var roastFlash = document.getElementById('roast-flash');
+  function flashRoast(msg, ms){
+    if (!roastFlash) return;
+    roastFlash.textContent = msg;
+    roastFlash.style.display = 'block';
+    roastFlash.classList.add('shake');
+    clearTimeout(flashRoast._t);
+    flashRoast._t = setTimeout(function(){
+      roastFlash.style.display = 'none';
+      roastFlash.classList.remove('shake');
+    }, ms || 4000);
+  }
+  (function(){
+    var path = window.location.pathname.split('/').pop();
+    if (toolRoasts[path]) flashRoast(toolRoasts[path]);
+    document.title = "NEVR // " + (toolRoasts[path] ? path.replace('.html','') : "Command Center");
+  })();
+
+  /* ---------------- Predictive search roast ---------------- */
+  (function(){
+    if (!searchInput) return;
+    var keywordRoasts = {
+      "subscription": "Gross. Wash your hands after typing that.",
+      "paywall": "We don't do that here. Go back to the dark ages if you want to pay.",
+      "saas": "Subscription as a Service? More like Subscription as a Scam. NEVR.",
+      "credit card": "Put it away. We don't want it, and we definitely don't need it.",
+      "login": "The first sign of a bad tool. You're better than this.",
+      "sign-up": "Why? Do you want more spam in your inbox? Because that's how you get spam.",
+      "signup": "We don't even have a database for your email. Stop trying.",
+      "premium": "You mean 'overpriced'? We prefer 'efficient'.",
+      "upgrade": "The only upgrade you're getting is a faster workflow. For free.",
+      "cloud": "A fancy word for 'someone else's computer'. NEVR uses yours.",
+      "terms of service": "50 pages of lies. We have one: just get your work done.",
+      "monthly fee": "We'd rather eat glass. You should too.",
+      "free trial": "That's just a trap with a countdown clock.",
+      "software": "Too heavy. We prefer 'utilities'.",
+      "support": "Our support is just 'it works'. If it doesn't, refresh your browser.",
+      "contact": "Contact? Who do you want to talk to? The code? It's open-source, go read it.",
+      "form": "Looking for a contact form? We don't believe in them. Too much friction.",
+      "email": "Want to send an email? Do it the old way. We don't have an inbox here.",
+      "phone": "No phones. No wires. Just pure local browser power."
+    };
+    var personalEffects = [
+      { key: 'akash bansal', run: function(){
+        document.body.style.filter = 'invert(1)';
+        setTimeout(function(){ document.body.style.filter = ''; }, 2000);
+        flashRoast('[SYSTEM OVERRIDE] Running diagnostic scan… you are NOT Akash. Nice try.');
+      }},
+      { key: 'teenywriter', run: function(){
+        var logo = document.getElementById('brand-logo');
+        if (logo){ logo.style.animation = 'pulse 0.6s ease-in-out 3'; }
+        flashRoast('🎉 Welcome IG fam! 🎉');
+      }},
+      { key: 'prem', run: function(){
+        document.body.classList.add('is-prem-mode');
+        flashRoast('[SYSTEM] Secret key accepted. Gold mode: 60s.');
+        setTimeout(function(){ document.body.classList.remove('is-prem-mode'); }, 60000);
+      }}
+    ];
+    var defaultPlaceholder = searchInput.getAttribute('placeholder');
+    var roastTimeout;
+    searchInput.addEventListener('input', function(){
+      var q = searchInput.value.trim().toLowerCase();
+      if (!q) return;
+      for (var i=0;i<personalEffects.length;i++){
+        if (q.indexOf(personalEffects[i].key) !== -1){ personalEffects[i].run(); return; }
+      }
+      for (var key in keywordRoasts){
+        if (q.indexOf(key) !== -1){
+          flashRoast(keywordRoasts[key], 3000);
+          searchInput.placeholder = 'Still thinking about paywalls? Focus.';
+          clearTimeout(roastTimeout);
+          roastTimeout = setTimeout(function(){ searchInput.placeholder = defaultPlaceholder; }, 10000);
+          break;
+        }
+      }
+    });
+  })();
+
+  /* ---------------- Konami code ---------------- */
+  (function(){
+    var seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+    var pos = 0;
+    document.addEventListener('keydown', function(e){
+      var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (key === seq[pos]) { pos++; } else { pos = (key === seq[0]) ? 1 : 0; }
+      if (pos === seq.length){
+        pos = 0;
+        document.body.classList.add('is-overclocked');
+        showToast('[OVERCLOCK] SYSTEM LIMITS REMOVED. PROCEED WITH CAUTION.', 5000);
+        setTimeout(function(){ document.body.classList.remove('is-overclocked'); }, 15000);
+      }
+    });
+  })();
+
+  /* ---------------- Ghost mode (console) ---------------- */
+  window.NEVR = window.NEVR || {};
+  window.NEVR.ghostMode = function(){
+    document.body.classList.toggle('is-ghost-mode');
+    console.log('%c[SYSTEM] Stealth mode activated. You are now invisible.', 'color:#7c84a0;font-family:monospace;');
+    return 'ghost mode: ' + (document.body.classList.contains('is-ghost-mode') ? 'on' : 'off');
+  };
+  console.log('%c NEVR_OS ', 'background:#3355ff;color:#fff;font-size:20px;font-weight:bold;');
+  console.log('%c Curiosity killed the cat, but it made you a better developer. Check the source if you want to see how this runs without a single server.', 'color:#7c84a0;font-family:monospace;');
+
+  /* ---------------- Support Developer roast ---------------- */
+  var supportLink = document.getElementById('support-dev-link');
+  if (supportLink){
+    supportLink.addEventListener('click', function(e){
+      e.preventDefault();
+      showToast("Nice try. We said NEVR. Take your money and buy yourself a coffee instead. We don't want it.");
+    });
+  }
+
+  /* ---------------- Triple-click logo: void mode ---------------- */
+  (function(){
+    var logo = document.querySelector('.brand');
+    if (!logo) return;
+    var clicks = 0, clickTimer;
+    logo.addEventListener('click', function(e){
+      clicks++;
+      clearTimeout(clickTimer);
+      clickTimer = setTimeout(function(){ clicks = 0; }, 700);
+      if (clicks >= 3){
+        clicks = 0;
+        e.preventDefault();
+        document.body.classList.toggle('is-void-mode');
+        var on = document.body.classList.contains('is-void-mode');
+        showToast(on ? '[SYSTEM] Void mode initialized. 0% pixels illuminated.' : '[SYSTEM] Void mode deactivated.');
+      }
+    });
+  })();
+
+  /* ---------------- Panic button: double-ESC then Y to confirm ---------------- */
+  (function(){
+    var lastEsc = 0, armed = false, armTimer;
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape'){
+        var now = Date.now();
+        if (now - lastEsc < 600){
+          armed = true;
+          showToast('[PANIC] Shredding local session... press Y within 5s to confirm.', 5000);
+          clearTimeout(armTimer);
+          armTimer = setTimeout(function(){ armed = false; }, 5000);
+        }
+        lastEsc = now;
+      } else if (armed && e.key.toLowerCase() === 'y'){
+        armed = false;
+        clearTimeout(armTimer);
+        try{ localStorage.clear(); } catch(err){}
+        window.location.href = 'https://www.google.com';
+      }
+    });
+  })();
+
+  /* ---------------- Add-to-home-screen nudge (only if the browser actually offers it) ---------------- */
+  (function(){
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e){
+      e.preventDefault();
+      deferredPrompt = e;
+      setTimeout(function(){
+        if (!deferredPrompt) return;
+        showToast("You're using us a lot. Make it official — add NEVR to your home screen so you can stop typing the URL like a caveman.", 7000);
+      }, 30000);
+    });
+  })();
+
+  /* ---------------- Offline / online banner ---------------- */
+  (function(){
+    var banner = document.getElementById('offline-banner');
+    if (!banner) return;
+    function setState(){
+      banner.classList.toggle('is-shown', !navigator.onLine);
+    }
+    window.addEventListener('offline', setState);
+    window.addEventListener('online', setState);
+    setState();
+  })();
+
+  /* ---------------- Battery status (hidden unless supported) ---------------- */
+  if (navigator.getBattery){
+    navigator.getBattery().then(function(battery){
+      function report(){
+        var pct = Math.round(battery.level * 100);
+        if (pct <= 20){
+          var msg = pct <= 5 ? 'Battery: Critical. NEVR stop, but maybe charge your phone?'
+            : 'Battery: Low. Save your energy for something useful.';
+          showToast(msg, 5000);
+        }
+      }
+      battery.addEventListener('levelchange', report);
+    }).catch(function(){});
+  }
+
+  /* ---------------- Ambient light: vampire mode (hidden unless supported) ---------------- */
+  if ('AmbientLightSensor' in window){
+    try{
+      var lightSensor = new window.AmbientLightSensor();
+      lightSensor.addEventListener('reading', function(){
+        var dark = lightSensor.illuminance < 1;
+        document.body.classList.toggle('is-void-mode', dark);
+        if (dark) showToast('[SYSTEM] Night mode activated. Even we NEVR look at blue light in the dark.', 4000);
+      });
+      lightSensor.start();
+    } catch(e){}
+  }
+
+  /* ---------------- Shake to clear (hidden unless supported + permitted) ---------------- */
+  if (window.DeviceMotionEvent){
+    var initShake = function(){
+      var shakes = 0, lastShakeT = 0;
+      window.addEventListener('devicemotion', function(e){
+        var acc = e.accelerationIncludingGravity;
+        if (!acc) return;
+        var now = Date.now();
+        if (Math.abs(acc.x||0) > 20 || Math.abs(acc.y||0) > 20){
+          if (now - lastShakeT > 800){ shakes++; lastShakeT = now; }
+          if (shakes > 3){
+            shakes = 0;
+            if (confirm('Feeling indecisive? Shake to clear your session.')){
+              try{ localStorage.clear(); } catch(err){}
+              refreshWidget();
+            }
+          }
+        }
+      });
+    };
+    if (typeof DeviceMotionEvent.requestPermission === 'function'){
+      document.body.addEventListener('click', function reqOnce(){
+        DeviceMotionEvent.requestPermission().then(function(state){
+          if (state === 'granted') initShake();
+        }).catch(function(){});
+        document.body.removeEventListener('click', reqOnce);
+      }, { once:true });
+    } else {
+      initShake();
+    }
+  }
+
+})();
+
+</script>
+</body>
+</html>

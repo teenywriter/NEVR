@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Govt-Spec Image Compressor — NEVR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#030509;--cream2:#0c1120;--cream3:#0c1120;
+  --ink:#edeff7;--ink2:#aab0cc;--ink3:#7c84a0;--ink4:#4b5170;
+  --border:#1b2440;--border2:#12172a;
+  --white:#090c14;
+  --blue:#6e85ff;--blue-l:rgba(110,133,255,.10);
+  --terra:#ff8a5c;--terra-l:rgba(255,138,92,.10);
+  --sage:#52d17c;--sage-l:rgba(82,209,124,.10);
+  --amber:#f2b84b;--amber-l:rgba(242,184,75,.10);
+  --red:#ff5c5c;--red-l:rgba(255,92,92,.10);
+  --radius:0;
+  --shadow:none;
+  --shadow-lg:none;
+  --mono:'JetBrains Mono',monospace;
+
+  --void:#030509;--panel:#090c14;--panel-2:#0c1120;
+  --line:#1b2440;--line-soft:#12172a;
+  --royal:#3355ff;--royal-bright:#6e85ff;--royal-dim:#1a2a80;
+  --f-display:'Space Grotesk',sans-serif;--f-body:'Inter',sans-serif;--f-mono:'JetBrains Mono',monospace;
+}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+nav{padding:.875rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+nav a{color:var(--ink3);text-decoration:none;font-size:.82rem;transition:color .2s;}
+nav a:hover{color:var(--ink);}
+.nav-sep{color:var(--border);}
+.nav-cur{color:var(--ink);font-weight:500;}
+main{flex:1;max-width:960px;margin:0 auto;padding:2.5rem 2rem 3rem;width:100%;}
+.page-header{margin-bottom:2rem;}
+.tag{display:inline-flex;align-items:center;gap:.4rem;background:var(--blue-l);color:var(--blue);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .65rem;border-radius:0;margin-bottom:.8rem;}
+h1{font-family:'Space Grotesk',serif;font-size:2.2rem;font-weight:400;line-height:1.15;margin-bottom:.4rem;}
+h1 em{font-style:italic;color:var(--terra);}
+.subtitle{color:var(--ink3);font-size:.9rem;font-weight:300;line-height:1.6;max-width:560px;}
+
+.presets-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem;}
+.preset-chip{padding:.35rem .85rem;border:1.5px solid var(--border);border-radius:0;font-size:.75rem;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;background:var(--cream2);display:flex;flex-direction:column;align-items:center;gap:.05rem;}
+.preset-chip .p-name{font-weight:600;font-size:.72rem;}
+.preset-chip .p-spec{font-size:.65rem;color:var(--ink4);}
+.preset-chip:hover,.preset-chip.active{background:var(--terra);color:var(--white);border-color:var(--terra);}
+.preset-chip.active .p-spec,.preset-chip:hover .p-spec{color:rgba(255,255,255,.7);}
+
+.target-row{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+.target-label{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);}
+.target-input-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:0;overflow:hidden;background:var(--white);}
+.target-input-wrap input{width:70px;padding:.45rem .6rem;border:none;background:transparent;font-family:'Inter',sans-serif;font-size:.88rem;color:var(--ink);outline:none;text-align:center;}
+.target-input-wrap span{padding:.45rem .6rem;background:var(--cream2);font-size:.75rem;color:var(--ink3);border-left:1px solid var(--border);}
+.dim-row{display:flex;align-items:center;gap:.5rem;}
+.dim-input-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:0;overflow:hidden;background:var(--white);}
+.dim-input-wrap input{width:72px;padding:.45rem .55rem;border:none;background:transparent;font-family:'Inter',sans-serif;font-size:.88rem;color:var(--ink);outline:none;text-align:center;}
+.dim-input-wrap span{padding:.45rem .5rem;background:var(--cream2);font-size:.72rem;color:var(--ink3);border-left:1px solid var(--border);}
+.lock-btn{width:28px;height:28px;border:1.5px solid var(--border);border-radius:0;background:var(--cream2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink4);transition:all .15s;}
+.lock-btn.locked{background:var(--blue-l);border-color:var(--blue);color:var(--blue);}
+.lock-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:3rem 2rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--white);margin-bottom:1.25rem;position:relative;}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--terra);background:var(--terra-l);}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.dz-icon{margin-bottom:.75rem;opacity:.35;}
+.dz-text{font-size:.95rem;font-weight:500;color:var(--ink2);margin-bottom:.3rem;}
+.dz-sub{font-size:.78rem;color:var(--ink4);}
+
+.queue{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.25rem;}
+.queue-item{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1.1rem;display:grid;grid-template-columns:56px 1fr auto;gap:1rem;align-items:center;box-shadow:var(--shadow);}
+.queue-item.done{border-left:3px solid var(--sage);}
+.queue-item.error{border-left:3px solid var(--red);}
+.queue-item.processing{border-left:3px solid var(--amber);}
+.queue-item.impossible{border-left:3px solid var(--red);}
+.qi-thumb{width:56px;height:56px;border-radius:0;object-fit:cover;background:var(--cream2);flex-shrink:0;}
+.qi-name{font-size:.82rem;font-weight:500;color:var(--ink);margin-bottom:.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px;}
+.qi-meta{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;}
+.qi-badge{font-size:.68rem;padding:.15rem .5rem;border-radius:0;font-weight:500;}
+.qi-badge.original{background:var(--cream2);color:var(--ink3);}
+.qi-badge.result{background:var(--sage-l);color:var(--sage);}
+.qi-badge.warn{background:var(--amber-l);color:var(--amber);}
+.qi-badge.error{background:var(--red-l);color:var(--red);}
+.qi-badge.over{background:var(--amber-l);color:var(--amber);}
+.qi-progress{height:3px;background:var(--border);border-radius:0;margin-top:.4rem;overflow:hidden;}
+.qi-progress-fill{height:100%;background:var(--amber);border-radius:0;transition:width .3s;}
+.qi-progress-fill.done{background:var(--sage);}
+.qi-actions{display:flex;gap:.4rem;flex-shrink:0;}
+.qi-btn{padding:.3rem .65rem;border:1.5px solid var(--border);border-radius:0;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:500;cursor:pointer;background:var(--white);color:var(--ink3);transition:all .15s;display:flex;align-items:center;gap:.25rem;}
+.qi-btn:hover{background:var(--royal);color:#fff;border-color:var(--royal);}
+.qi-btn.download{background:var(--sage);color:var(--white);border-color:var(--sage);}
+.qi-btn.download:hover{background:#3fb56a;}
+.qi-btn.crop-btn{background:var(--blue-l);color:var(--blue);border-color:var(--blue);}
+.qi-btn.crop-btn:hover{background:var(--blue);color:var(--white);}
+.qi-btn.remove:hover{background:var(--red);border-color:var(--red);}
+
+.action-bar{display:flex;gap:.75rem;align-items:center;margin-bottom:1.25rem;}
+.btn{padding:.65rem 1.4rem;border-radius:0;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid transparent;display:flex;align-items:center;gap:.4rem;}
+.btn-primary{background:var(--terra);color:var(--white);border-color:var(--terra);}
+.btn-primary:hover{background:#e06f42;}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+.btn-secondary{background:var(--white);color:var(--ink2);border-color:var(--border);}
+.btn-secondary:hover{background:var(--sage);color:var(--white);border-color:var(--sage);}
+.btn-ghost{background:transparent;color:var(--ink3);border-color:transparent;font-size:.8rem;}
+.btn-ghost:hover{color:var(--terra);}
+.action-summary{font-size:.78rem;color:var(--ink3);margin-left:auto;}
+
+/* ── CROP MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--white);border-radius:var(--radius);width:100%;max-width:680px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg);}
+.modal-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-title{font-size:.9rem;font-weight:600;color:var(--ink);}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--ink3);font-size:1.2rem;line-height:1;padding:.25rem;}
+.modal-close:hover{color:var(--ink);}
+.modal-body{flex:1;overflow:hidden;position:relative;background:#111;min-height:300px;}
+.modal-body img{display:block;max-width:100%;max-height:100%;}
+.modal-footer{padding:.9rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;flex-shrink:0;}
+.crop-info{font-size:.72rem;color:var(--ink3);margin-right:auto;}
+.crop-ratio-btns{display:flex;gap:.35rem;}
+.cr-btn{padding:.25rem .6rem;border:1.5px solid var(--border);border-radius:0;font-size:.72rem;font-weight:500;cursor:pointer;background:var(--cream2);color:var(--ink3);transition:all .15s;}
+.cr-btn.active,.cr-btn:hover{background:var(--royal);color:#fff;border-color:var(--royal);}
+.modal-btn{padding:.5rem 1rem;border-radius:0;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .15s;}
+.modal-btn.cancel{background:var(--white);color:var(--ink2);border-color:var(--border);}
+.modal-btn.cancel:hover{background:var(--cream2);}
+.modal-btn.confirm{background:var(--sage);color:var(--white);}
+.modal-btn.confirm:hover{background:#3fb56a;}
+
+.disclaimer{font-size:.72rem;color:var(--ink3);line-height:1.55;border-top:1px solid var(--border);padding-top:1.2rem;margin-top:.5rem;}
+.disclaimer strong{color:var(--ink2);}
+footer{border-top:1px solid var(--border);padding:1.2rem 2rem;text-align:center;font-size:.78rem;color:var(--ink3);}
+footer a{color:var(--ink2);text-decoration:none;}
+footer a:hover{color:var(--ink);}
+
+/* ══════════ NEVR shared chrome ══════════ */
+.th-nav{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:0 2rem;height:58px;background:rgba(3,5,9,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;}
+.th-brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;flex-shrink:0;}
+.th-brand-mark{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.th-crumb{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--ink3);min-width:0;}
+.th-crumb a{color:inherit;text-decoration:none;transition:color .2s;}
+.th-crumb a:hover{color:var(--royal-bright);}
+.th-crumb .th-sep{color:var(--ink4,var(--ink3));}
+.th-crumb .th-cur{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.th-nav-extra{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.th-about{max-width:1080px;margin:0 auto;padding:4rem 2rem 3.5rem;}
+.th-about-inner{border-top:1px solid var(--line-soft);padding-top:3.5rem;}
+.th-about-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);border:1px solid var(--line);padding:6px 12px;background:rgba(51,85,255,.06);margin-bottom:20px;}
+.th-about h2{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,2.4vw,28px);letter-spacing:-.01em;line-height:1.25;margin-bottom:18px;max-width:34ch;color:var(--ink);}
+.th-about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start;}
+.th-about p{color:var(--ink3);font-size:14px;line-height:1.75;margin-bottom:13px;font-family:var(--f-body);font-weight:300;}
+.th-about p:last-child{margin-bottom:0;}
+.th-about p strong{color:var(--ink);font-weight:600;}
+.th-facts{border:1px solid var(--line);background:var(--panel-2);}
+.th-fact{padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+.th-fact:last-child{border-bottom:none;}
+.th-fact-k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);margin-bottom:6px;}
+.th-fact-v{font-size:13px;color:var(--ink);line-height:1.55;font-family:var(--f-body);}
+
+.th-footer{border-top:1px solid var(--line-soft);padding:24px 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--ink3);}
+.th-footer a{color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px;text-decoration:none;}
+.th-footer a:hover{color:var(--royal-bright);border-color:var(--royal);}
+
+@media (max-width:640px){
+  .th-about{padding:3rem 1.2rem;}
+  .th-about-grid{grid-template-columns:1fr;gap:28px;}
+  .th-nav{padding:0 1.2rem;gap:10px;height:auto;min-height:54px;}
+  .th-footer{padding:18px 1.2rem;flex-direction:column;align-items:flex-start;}
+}
+
+</style>
+</head>
+<body>
+<nav class="th-nav">
+  <a href="index.html" class="th-brand"><img src="nevrwhite.png" class="th-brand-mark" alt="NEVR"></a>
+  <div class="th-crumb"><a href="index.html"></a><span class="th-sep">/</span><span class="th-cur">Govt-Spec Image Compressor</span></div>
+</nav>
+<main>
+  <div class="page-header">
+    <div class="tag">🏛 Bureaucracy Proof · 100% Local</div>
+    <h1>Image Compressor <em>Govt-Spec</em></h1>
+    <p class="subtitle">Hit exact government file-size targets without uploading to any server. Crop, resize, and compress in your browser.</p>
+  </div>
+
+  <div class="presets-row" id="presets-row">
+    <div class="preset-chip active" data-kb="50" data-w="" data-h="" onclick="applyPreset(this)"><span class="p-name">Generic Govt</span><span class="p-spec">Max 50 KB</span></div>
+    <div class="preset-chip" data-kb="20" data-w="200" data-h="230" onclick="applyPreset(this)"><span class="p-name">Passport Photo</span><span class="p-spec">Max 20 KB · 200×230px</span></div>
+    <div class="preset-chip" data-kb="50" data-w="" data-h="" onclick="applyPreset(this)"><span class="p-name">Aadhaar Upload</span><span class="p-spec">Max 50 KB</span></div>
+    <div class="preset-chip" data-kb="100" data-w="300" data-h="350" onclick="applyPreset(this)"><span class="p-name">UPSC / SSC</span><span class="p-spec">Max 100 KB · 300×350px</span></div>
+    <div class="preset-chip" data-kb="40" data-w="" data-h="" onclick="applyPreset(this)"><span class="p-name">University Form</span><span class="p-spec">Max 40 KB</span></div>
+    <div class="preset-chip" data-kb="200" data-w="" data-h="" onclick="applyPreset(this)"><span class="p-name">Custom</span><span class="p-spec">Set your own</span></div>
+  </div>
+
+  <div class="target-row">
+    <span class="target-label">Target Size</span>
+    <div class="target-input-wrap"><input type="number" id="target-kb" value="50" min="1" max="10000"><span>KB</span></div>
+    <span style="font-size:.72rem;color:var(--ink4)">·</span>
+    <span class="target-label">Resize To (optional)</span>
+    <div class="dim-row">
+      <div class="dim-input-wrap"><input type="number" id="dim-w" placeholder="W" min="10" max="4000"><span>px</span></div>
+      <button class="lock-btn locked" id="lock-btn" onclick="toggleLock()" title="Lock aspect ratio">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="2.5" y="4.5" width="6" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M3.5 4.5V3a2 2 0 014 0v1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </button>
+      <div class="dim-input-wrap"><input type="number" id="dim-h" placeholder="H" min="10" max="4000"><span>px</span></div>
+    </div>
+  </div>
+
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp,image/bmp" multiple>
+    <div class="dz-icon">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="5" y="8" width="30" height="26" rx="3" stroke="#4b5170" stroke-width="1.5"/><circle cx="14" cy="17" r="3" stroke="#4b5170" stroke-width="1.5"/><path d="M5 28l9-8 6 6 5-5 10 9" stroke="#4b5170" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="dz-text">Drop images here or click to browse</div>
+    <div class="dz-sub">JPG, PNG, WebP, BMP · Multiple files supported</div>
+  </div>
+
+  <div class="queue" id="queue"></div>
+  <div class="action-bar" id="action-bar" style="display:none">
+    <button class="btn btn-primary" id="compress-btn" onclick="compressAll()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3.5 5.5L7 9l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Compress All
+    </button>
+    <button class="btn btn-secondary" id="download-all-btn" style="display:none" onclick="downloadAll()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3.5 6.5l3.5 4 3.5-4M1 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download All
+    </button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear All</button>
+    <span class="action-summary" id="action-summary"></span>
+  </div>
+  <div class="disclaimer">
+    <strong>Privacy:</strong> All compression and cropping happens entirely in your browser. Your images are never uploaded. &nbsp;·&nbsp; <strong>Note:</strong> Always verify output meets the specific portal's requirements before submission.
+  </div>
+</main>
+
+<section class="th-about">
+  <div class="th-about-inner">
+    <span class="th-about-eyebrow">✦ About This Tool</span>
+    <div class="th-about-grid">
+      <div>
+        <h2>Why we built the Govt-Spec Image Compressor</h2>
+        <p>Every Indian government form — passport, PAN, UPSC, SSC, university admissions — has its own exact photo and signature size limits, usually specified as a KB range and pixel dimensions that no phone camera or scanner ever produces by default. This tool exists for the very specific, very common frustration of a form rejecting your upload because your photo is "too large" or "too small."</p>
+        <p>Pick a preset — or set a custom target — and the tool <strong>resizes and re-compresses</strong> the image directly in your browser using canvas re-encoding, iterating on quality until the file lands inside the required KB range while keeping dimensions correct. A crop tool is included for passport/photo-ID aspect ratios.</p>
+      </div>
+      <div class="th-facts">
+        <div class="th-fact"><div class="th-fact-k">Privacy</div><div class="th-fact-v">Your photo is compressed locally — it's never uploaded to any server.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Presets</div><div class="th-fact-v">Common Indian government form specs, plus a custom KB-range and dimension mode.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Method</div><div class="th-fact-v">Canvas re-encoding with iterative quality adjustment to hit the exact target size.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="th-footer">
+  <span>Made with ❤️ by <a href="https://www.teenywriter.dpdns.org">Teenywriter</a> &nbsp;·&nbsp; Designed by <a href="https://www.pixelshade.in">PixelShade Design Studios</a></span>
+  <a href="index.html">← Back to NEVR</a>
+</footer>
+
+<!-- CROP MODAL -->
+<div class="modal-overlay hidden" id="crop-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Crop Image</span>
+      <button class="modal-close" onclick="closeCropModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <img id="crop-img" src="" alt="Crop">
+    </div>
+    <div class="modal-footer">
+      <span class="crop-info" id="crop-info">Select a crop ratio</span>
+      <div class="crop-ratio-btns">
+        <button class="cr-btn" onclick="setCropRatio(NaN,'free')">Free</button>
+        <button class="cr-btn" onclick="setCropRatio(1/1,'1:1')">1:1</button>
+        <button class="cr-btn active" onclick="setCropRatio(200/230,'Passport')">Passport</button>
+        <button class="cr-btn" onclick="setCropRatio(300/350,'UPSC')">UPSC</button>
+        <button class="cr-btn" onclick="setCropRatio(4/3,'4:3')">4:3</button>
+        <button class="cr-btn" onclick="setCropRatio(16/9,'16:9')">16:9</button>
+      </div>
+      <button class="modal-btn cancel" onclick="closeCropModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="applyCrop()">Apply Crop</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══ STATE ══ */
+let files = [];
+let fileIdCtr = 0;
+let aspectLocked = true;
+let aspectRatio = null;
+let cropperInstance = null;
+let cropTargetId = null;
+
+/* ══ PRESETS ══ */
+function applyPreset(el) {
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('target-kb').value = el.dataset.kb;
+  document.getElementById('dim-w').value = el.dataset.w || '';
+  document.getElementById('dim-h').value = el.dataset.h || '';
+}
+
+/* ══ LOCK ══ */
+function toggleLock() {
+  aspectLocked = !aspectLocked;
+  document.getElementById('lock-btn').classList.toggle('locked', aspectLocked);
+}
+document.getElementById('dim-w').addEventListener('input', function() {
+  if (!aspectLocked || !aspectRatio) return;
+  const w = parseFloat(this.value);
+  if (w) document.getElementById('dim-h').value = Math.round(w / aspectRatio);
+});
+document.getElementById('dim-h').addEventListener('input', function() {
+  if (!aspectLocked || !aspectRatio) return;
+  const h = parseFloat(this.value);
+  if (h) document.getElementById('dim-w').value = Math.round(h * aspectRatio);
+});
+
+/* ══ DROP ZONE ══ */
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); addFiles([...e.dataTransfer.files]); });
+document.getElementById('file-input').addEventListener('change', function() { addFiles([...this.files]); this.value = ''; });
+
+function addFiles(fileList) {
+  fileList.filter(f => f.type.startsWith('image/')).forEach(f => {
+    const id = ++fileIdCtr;
+    const url = URL.createObjectURL(f);
+    // Check aspect ratio mismatch warning
+    const targetW = parseInt(document.getElementById('dim-w').value)||null;
+    const targetH = parseInt(document.getElementById('dim-h').value)||null;
+    files.push({ id, file: f, origBlob: f, origSize: f.size, resultBlob: null, resultSize: null, status: 'pending', thumbURL: url, targetW, targetH, ratioWarn: false, croppedBlob: null });
+    // Detect ratio mismatch after image loads
+    const img = new Image();
+    img.onload = () => {
+      const item = files.find(i => i.id === id);
+      if (!item) return;
+      if (targetW && targetH) {
+        const srcRatio = img.naturalWidth / img.naturalHeight;
+        const tgtRatio = targetW / targetH;
+        item.ratioWarn = Math.abs(srcRatio - tgtRatio) > 0.05;
+      }
+      renderQueue();
+    };
+    img.src = url;
+  });
+  document.getElementById('action-bar').style.display = 'flex';
+  renderQueue();
+  updateSummary();
+}
+
+/* ══ RENDER QUEUE ══ */
+function renderQueue() {
+  const q = document.getElementById('queue');
+  q.innerHTML = files.map(item => {
+    const origStr = fmtSize(item.origSize);
+    const statusClass = { pending:'', processing:'processing', done:'done', error:'error', impossible:'impossible' }[item.status] || '';
+    let resultBadge = '';
+    let progressHtml = '';
+    let actionBtns = `<button class="qi-btn crop-btn" onclick="openCropModal(${item.id})">✂ Crop</button>
+                      <button class="qi-btn remove" onclick="removeFile(${item.id})">✕</button>`;
+
+    if (item.ratioWarn && item.status === 'pending') {
+      resultBadge += `<span class="qi-badge warn">⚠ Ratio mismatch — may stretch</span>`;
+    }
+    if (item.croppedBlob) {
+      resultBadge += `<span class="qi-badge result">✓ Cropped</span>`;
+    }
+    if (item.status === 'processing') {
+      progressHtml = `<div class="qi-progress"><div class="qi-progress-fill" style="width:60%"></div></div>`;
+    }
+    if (item.status === 'done') {
+      const targetKB = parseFloat(document.getElementById('target-kb').value) * 1024;
+      const over = item.resultSize > targetKB;
+      resultBadge += `<span class="qi-badge ${over ? 'over' : 'result'}">${fmtSize(item.resultSize)} ${over ? '⚠ over target' : '✓ meets target'}</span>`;
+      const saved = Math.round((1 - item.resultSize / item.origSize) * 100);
+      if (saved > 0) resultBadge += `<span class="qi-badge result">−${saved}% size</span>`;
+      progressHtml = `<div class="qi-progress"><div class="qi-progress-fill done" style="width:100%"></div></div>`;
+      actionBtns = `<button class="qi-btn download" onclick="downloadOne(${item.id})">↓ Save</button>
+                    <button class="qi-btn crop-btn" onclick="openCropModal(${item.id})">✂ Re-crop</button>
+                    <button class="qi-btn remove" onclick="removeFile(${item.id})">✕</button>`;
+    }
+    if (item.status === 'error' || item.status === 'impossible') {
+      resultBadge += `<span class="qi-badge error">${item.status === 'impossible' ? 'Target impossible — best attempt saved' : 'Compression failed'}</span>`;
+      if (item.status === 'impossible' && item.resultBlob) {
+        actionBtns = `<button class="qi-btn download" onclick="downloadOne(${item.id})">↓ Save anyway</button>
+                      <button class="qi-btn remove" onclick="removeFile(${item.id})">✕</button>`;
+      }
+    }
+
+    return `<div class="queue-item ${statusClass}">
+      <img class="qi-thumb" src="${item.thumbURL}" alt="">
+      <div>
+        <div class="qi-name">${esc(item.file.name)}</div>
+        <div class="qi-meta"><span class="qi-badge original">${origStr}</span>${resultBadge}</div>
+        ${progressHtml}
+      </div>
+      <div class="qi-actions">${actionBtns}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══ CROP MODAL ══ */
+function openCropModal(id) {
+  const item = files.find(f => f.id === id);
+  if (!item) return;
+  cropTargetId = id;
+  const modal = document.getElementById('crop-modal');
+  modal.classList.remove('hidden');
+  const imgEl = document.getElementById('crop-img');
+  imgEl.src = item.croppedBlob ? URL.createObjectURL(item.croppedBlob) : item.thumbURL;
+
+  // Destroy previous cropper
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+  imgEl.onload = () => {
+    const targetW = parseInt(document.getElementById('dim-w').value) || null;
+    const targetH = parseInt(document.getElementById('dim-h').value) || null;
+    const ratio = (targetW && targetH) ? targetW / targetH : 200 / 230;
+    cropperInstance = new Cropper(imgEl, {
+      aspectRatio: ratio,
+      viewMode: 2,
+      autoCropArea: 0.9,
+      movable: true,
+      scalable: true,
+      zoomable: true,
+      responsive: true,
+    });
+    document.getElementById('crop-info').textContent = `Original: ${imgEl.naturalWidth}×${imgEl.naturalHeight}px`;
+  };
+}
+
+function setCropRatio(ratio, label) {
+  document.querySelectorAll('.cr-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (cropperInstance) cropperInstance.setAspectRatio(isNaN(ratio) ? NaN : ratio);
+}
+
+function closeCropModal() {
+  document.getElementById('crop-modal').classList.add('hidden');
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+}
+
+function applyCrop() {
+  if (!cropperInstance || !cropTargetId) return;
+  const item = files.find(f => f.id === cropTargetId);
+  if (!item) return;
+  const canvas = cropperInstance.getCroppedCanvas({ fillColor: '#090c14' });
+  canvas.toBlob(blob => {
+    item.croppedBlob = blob;
+    // Update thumb
+    URL.revokeObjectURL(item.thumbURL);
+    item.thumbURL = URL.createObjectURL(blob);
+    item.status = 'pending';
+    item.resultBlob = null;
+    renderQueue();
+    closeCropModal();
+  }, 'image/jpeg', 0.95);
+}
+
+/* ══ COMPRESS ENGINE ══ */
+async function compressAll() {
+  const targetBytes = parseFloat(document.getElementById('target-kb').value) * 1024;
+  const targetW = parseInt(document.getElementById('dim-w').value) || null;
+  const targetH = parseInt(document.getElementById('dim-h').value) || null;
+  document.getElementById('compress-btn').disabled = true;
+
+  for (const item of files) {
+    if (item.status === 'done') continue;
+    item.status = 'processing';
+    renderQueue();
+    try {
+      const sourceBlob = item.croppedBlob || item.origBlob;
+      const { blob } = await compressImage(sourceBlob, targetBytes, targetW, targetH);
+      item.resultBlob = blob;
+      item.resultSize = blob.size;
+      item.status = blob._impossible ? 'impossible' : 'done';
+    } catch(e) {
+      item.status = 'error';
+    }
+    renderQueue();
+  }
+
+  document.getElementById('compress-btn').disabled = false;
+  document.getElementById('download-all-btn').style.display = '';
+  updateSummary();
+}
+
+function compressImage(blob, targetBytes, targetW, targetH) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      let outW = targetW || img.naturalWidth;
+      let outH = targetH || img.naturalHeight;
+      if (targetW && !targetH) outH = Math.round(img.naturalHeight * (targetW / img.naturalWidth));
+      if (targetH && !targetW) outW = Math.round(img.naturalWidth  * (targetH / img.naturalHeight));
+      aspectRatio = outW / outH;
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      let quality = 0.92;
+      const MIN_Q = 0.05;
+      let iterations = 0;
+      const MAX_ITER = 18;
+
+      const attempt = () => {
+        iterations++;
+        canvas.width = outW;
+        canvas.height = outH;
+        // ── FIX: always fill white before drawing (fixes PNG transparency → black bug) ──
+        ctx.fillStyle = '#090c14';
+        ctx.fillRect(0, 0, outW, outH);
+        ctx.drawImage(img, 0, 0, outW, outH);
+
+        canvas.toBlob(resultBlob => {
+          if (!resultBlob) { reject(new Error('Blob failed')); return; }
+
+          // ── FIX: hard iteration cap — resolves with best attempt, marks impossible ──
+          if (iterations >= MAX_ITER) {
+            resultBlob._impossible = resultBlob.size > targetBytes;
+            resolve({ blob: resultBlob, w: outW, h: outH });
+            return;
+          }
+
+          if (resultBlob.size <= targetBytes) {
+            resolve({ blob: resultBlob, w: outW, h: outH });
+            return;
+          }
+
+          if (quality > MIN_Q) {
+            quality = Math.max(MIN_Q, quality - 0.07);
+          } else {
+            // Quality floor hit — scale dimensions
+            const scale = Math.sqrt(targetBytes / resultBlob.size) * 0.92;
+            outW = Math.max(10, Math.round(outW * scale));
+            outH = Math.max(10, Math.round(outH * scale));
+            quality = 0.80;
+          }
+          attempt();
+        }, 'image/jpeg', quality);
+      };
+      attempt();
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+/* ══ DOWNLOADS ══ */
+function sanitizeName(name) {
+  // Strip extension, replace spaces/specials with underscores, lowercase
+  return name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_\-]/g, '_').replace(/_+/g, '_').toLowerCase();
+}
+
+function downloadOne(id) {
+  const item = files.find(f => f.id === id);
+  if (!item?.resultBlob) return;
+  const name = sanitizeName(item.file.name) + '_compressed.jpg';
+  const url = URL.createObjectURL(item.resultBlob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadAll() {
+  files.filter(f => f.status === 'done' || f.status === 'impossible').forEach(item => downloadOne(item.id));
+}
+
+function removeFile(id) {
+  files = files.filter(f => f.id !== id);
+  renderQueue();
+  if (!files.length) {
+    document.getElementById('action-bar').style.display = 'none';
+    document.getElementById('download-all-btn').style.display = 'none';
+  }
+  updateSummary();
+}
+
+function clearAll() {
+  files = [];
+  renderQueue();
+  document.getElementById('action-bar').style.display = 'none';
+  document.getElementById('download-all-btn').style.display = 'none';
+}
+
+function updateSummary() {
+  const done = files.filter(f => f.status === 'done' || f.status === 'impossible').length;
+  const total = files.length;
+  const el = document.getElementById('action-summary');
+  el.textContent = total ? `${total} image${total>1?'s':''} queued${done ? ` · ${done} compressed` : ''}` : '';
+}
+
+function fmtSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(2) + ' MB';
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>

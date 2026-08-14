@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Take-Home Salary Visualizer — NEVR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#030509;--cream2:#0c1120;--cream3:#0c1120;
+  --ink:#edeff7;--ink2:#aab0cc;--ink3:#7c84a0;--ink4:#4b5170;
+  --border:#1b2440;--border2:#12172a;
+  --white:#090c14;
+  --sage:#52d17c;--sage-l:rgba(82,209,124,.10);
+  --terra:#ff8a5c;--terra-l:rgba(255,138,92,.10);
+  --blue:#6e85ff;--blue-l:rgba(110,133,255,.10);
+  --amber:#f2b84b;--amber-l:rgba(242,184,75,.10);
+  --red:#ff5c5c;--red-l:rgba(255,92,92,.10);
+  --purple:#a78bfa;--purple-l:rgba(167,139,250,.10);
+  --radius:0;
+  --shadow:none;
+  --shadow-lg:none;
+  --mono:'JetBrains Mono',monospace;
+
+  --void:#030509;--panel:#090c14;--panel-2:#0c1120;
+  --line:#1b2440;--line-soft:#12172a;
+  --royal:#3355ff;--royal-bright:#6e85ff;--royal-dim:#1a2a80;
+  --f-display:'Space Grotesk',sans-serif;--f-body:'Inter',sans-serif;--f-mono:'JetBrains Mono',monospace;
+}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+nav{padding:.875rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+nav a{color:var(--ink3);text-decoration:none;font-size:.82rem;transition:color .2s;}
+nav a:hover{color:var(--ink);}
+.nav-sep{color:var(--border);}
+.nav-cur{color:var(--ink);font-weight:500;}
+main{flex:1;max-width:1080px;margin:0 auto;padding:2.5rem 2rem 3rem;width:100%;}
+.page-header{margin-bottom:2rem;}
+.tag{display:inline-flex;align-items:center;gap:.4rem;background:var(--sage-l);color:var(--sage);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .65rem;border-radius:0;margin-bottom:.8rem;}
+h1{font-family:'Space Grotesk',serif;font-size:2.2rem;font-weight:400;line-height:1.15;margin-bottom:.4rem;}
+h1 em{font-style:italic;color:var(--sage);}
+.subtitle{color:var(--ink3);font-size:.9rem;font-weight:300;line-height:1.6;max-width:560px;}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:380px 1fr;gap:1.75rem;align-items:start;}
+
+/* INPUT PANEL */
+.input-panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);}
+.section{margin-bottom:1.25rem;}
+.section:last-child{margin-bottom:0;}
+.sec-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink4);margin-bottom:.85rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);}
+
+/* Input mode toggle */
+.input-mode-toggle{display:flex;gap:0;background:var(--cream2);border:1px solid var(--border);border-radius:0;padding:.25rem;margin-bottom:1rem;}
+.im-btn{flex:1;padding:.4rem .5rem;border-radius:0;border:none;background:transparent;font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;text-align:center;}
+.im-btn.active{background:var(--white);color:var(--ink);box-shadow:var(--shadow);}
+
+.field{margin-bottom:.8rem;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:.75rem;font-weight:500;color:var(--ink2);margin-bottom:.28rem;}
+.input-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:0;overflow:hidden;background:var(--cream);transition:border-color .2s;}
+.input-wrap:focus-within{border-color:var(--sage);}
+.input-wrap .pfx{padding:.5rem .65rem;background:var(--cream2);font-size:.78rem;color:var(--ink3);border-right:1px solid var(--border);}
+.input-wrap input{flex:1;padding:.5rem .65rem;border:none;background:transparent;font-family:var(--mono);font-size:.9rem;color:var(--ink);outline:none;}
+.field-note{font-size:.68rem;color:var(--ink4);margin-top:.25rem;line-height:1.4;}
+
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+
+/* Deductions toggle */
+.ded-toggle{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;}
+.ded-label{font-size:.75rem;color:var(--ink2);}
+.mini-toggle{width:34px;height:18px;background:var(--border);border-radius:0;position:relative;cursor:pointer;border:none;outline:none;transition:background .2s;flex-shrink:0;}
+.mini-toggle::after{content:'';position:absolute;width:12px;height:12px;background:var(--white);border-radius:50%;top:3px;left:3px;transition:transform .2s;}
+.mini-toggle.on{background:var(--sage);}
+.mini-toggle.on::after{transform:translateX(16px);}
+
+/* RESULTS */
+.results-col{display:flex;flex-direction:column;gap:1.25rem;}
+
+/* Winner banner */
+.winner-banner{border-radius:var(--radius);padding:1.1rem 1.4rem;display:flex;align-items:center;gap:1rem;background:var(--sage);color:var(--white);box-shadow:var(--shadow-lg);}
+.wb-emoji{font-size:1.5rem;}
+.wb-text{}
+.wb-label{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;opacity:.75;}
+.wb-val{font-family:var(--mono);font-size:1.3rem;font-weight:700;}
+.wb-sub{font-size:.72rem;opacity:.7;margin-top:.1rem;}
+
+/* Side-by-side waterfall */
+.waterfall-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.wf-col{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow);}
+.wf-col.recommended{border-color:var(--sage);border-width:2px;}
+.wfc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;}
+.wfc-title{font-size:.8rem;font-weight:700;color:var(--ink);}
+.wfc-badge{font-size:.62rem;font-weight:700;padding:.2rem .55rem;border-radius:0;}
+.badge-recommended{background:var(--sage-l);color:var(--sage);}
+.badge-alt{background:var(--cream2);color:var(--ink3);}
+
+/* Waterfall bars */
+.wf-bar-group{margin-bottom:.6rem;}
+.wf-bar-group:last-child{margin-bottom:0;}
+.wfb-meta{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.25rem;}
+.wfb-label{font-size:.72rem;color:var(--ink3);}
+.wfb-val{font-family:var(--mono);font-size:.75rem;font-weight:500;}
+.wfb-val.deduct{color:var(--terra);}
+.wfb-val.takehome{color:var(--sage);font-size:.88rem;font-weight:700;}
+.wf-track{height:8px;background:var(--cream2);border-radius:0;overflow:hidden;}
+.wf-fill{height:100%;border-radius:0;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.fill-ctc{background:var(--blue);}
+.fill-pf{background:var(--amber);}
+.fill-gratuity{background:var(--amber);}
+.fill-tax{background:var(--terra);}
+.fill-ded80c{background:var(--purple);}
+.fill-takehome{background:var(--sage);}
+.wf-divider{border-top:1px dashed var(--border);margin:.7rem 0;}
+.wfc-takehome{margin-top:.6rem;background:var(--sage-l);border-radius:0;padding:.65rem .8rem;display:flex;align-items:center;justify-content:space-between;}
+.wfc-th-label{font-size:.72rem;color:var(--sage);font-weight:600;}
+.wfc-th-val{font-family:var(--mono);font-size:1.05rem;font-weight:700;color:var(--sage);}
+.wfc-th-monthly{font-size:.65rem;color:var(--sage);opacity:.75;text-align:right;}
+
+/* Tax breakdown table */
+.tax-breakdown{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow);}
+.tb-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink4);margin-bottom:.75rem;}
+.tb-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem 1.5rem;}
+.tb-row{display:flex;justify-content:space-between;align-items:baseline;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.78rem;}
+.tb-row:last-child{border-bottom:none;}
+.tb-row.total-row{font-weight:700;color:var(--ink);border-top:2px solid var(--ink);padding-top:.5rem;margin-top:.25rem;}
+.tbr-label{color:var(--ink3);}
+.tbr-val{font-family:var(--mono);font-size:.75rem;color:var(--ink2);}
+.tbr-val.red{color:var(--terra);}
+.tbr-val.green{color:var(--sage);}
+
+.disclaimer{font-size:.72rem;color:var(--ink3);line-height:1.55;border-top:1px solid var(--border);padding-top:1.2rem;margin-top:.5rem;}
+.disclaimer strong{color:var(--ink2);}
+footer{border-top:1px solid var(--border);padding:1.2rem 2rem;text-align:center;font-size:.78rem;color:var(--ink3);}
+footer a{color:var(--ink2);text-decoration:none;}
+footer a:hover{color:var(--ink);}
+@media(max-width:800px){.layout{grid-template-columns:1fr;}.waterfall-grid{grid-template-columns:1fr;}.tb-grid{grid-template-columns:1fr;}}
+
+/* ══════════ NEVR shared chrome ══════════ */
+.th-nav{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:0 2rem;height:58px;background:rgba(3,5,9,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;}
+.th-brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;flex-shrink:0;}
+.th-brand-mark{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.th-crumb{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--ink3);min-width:0;}
+.th-crumb a{color:inherit;text-decoration:none;transition:color .2s;}
+.th-crumb a:hover{color:var(--royal-bright);}
+.th-crumb .th-sep{color:var(--ink4,var(--ink3));}
+.th-crumb .th-cur{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.th-nav-extra{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.th-about{max-width:1080px;margin:0 auto;padding:4rem 2rem 3.5rem;}
+.th-about-inner{border-top:1px solid var(--line-soft);padding-top:3.5rem;}
+.th-about-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);border:1px solid var(--line);padding:6px 12px;background:rgba(51,85,255,.06);margin-bottom:20px;}
+.th-about h2{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,2.4vw,28px);letter-spacing:-.01em;line-height:1.25;margin-bottom:18px;max-width:34ch;color:var(--ink);}
+.th-about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start;}
+.th-about p{color:var(--ink3);font-size:14px;line-height:1.75;margin-bottom:13px;font-family:var(--f-body);font-weight:300;}
+.th-about p:last-child{margin-bottom:0;}
+.th-about p strong{color:var(--ink);font-weight:600;}
+.th-facts{border:1px solid var(--line);background:var(--panel-2);}
+.th-fact{padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+.th-fact:last-child{border-bottom:none;}
+.th-fact-k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);margin-bottom:6px;}
+.th-fact-v{font-size:13px;color:var(--ink);line-height:1.55;font-family:var(--f-body);}
+
+.th-footer{border-top:1px solid var(--line-soft);padding:24px 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--ink3);}
+.th-footer a{color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px;text-decoration:none;}
+.th-footer a:hover{color:var(--royal-bright);border-color:var(--royal);}
+
+@media (max-width:640px){
+  .th-about{padding:3rem 1.2rem;}
+  .th-about-grid{grid-template-columns:1fr;gap:28px;}
+  .th-nav{padding:0 1.2rem;gap:10px;height:auto;min-height:54px;}
+  .th-footer{padding:18px 1.2rem;flex-direction:column;align-items:flex-start;}
+}
+
+</style>
+</head>
+<body>
+<nav class="th-nav">
+  <a href="index.html" class="th-brand"><img src="nevrwhite.png" class="th-brand-mark" alt="NEVR"></a>
+  <div class="th-crumb"><a href="index.html"></a><span class="th-sep">/</span><span class="th-cur">Take-Home Salary Visualizer</span></div>
+</nav>
+<main>
+  <div class="page-header">
+    <div class="tag">💰 FY 2024-25 · No Ads · No Signup</div>
+    <h1>Indian <em>Take-Home</em> Salary Visualizer</h1>
+    <p class="subtitle">Old vs. New Tax Regime, side by side. What actually hits your bank account — not your CTC.</p>
+  </div>
+
+  <div class="layout">
+    <!-- INPUTS -->
+    <div class="input-panel">
+      <div class="section">
+        <div class="sec-title">Salary Input</div>
+        <div class="input-mode-toggle">
+          <button class="im-btn active" onclick="setInputMode('ctc',this)">I know my CTC</button>
+          <button class="im-btn" onclick="setInputMode('basic',this)">I know Basic Pay</button>
+        </div>
+        <div id="ctc-mode">
+          <div class="field">
+            <label>Annual CTC</label>
+            <div class="input-wrap"><span class="pfx">₹</span><input type="number" id="ctc" value="1200000" min="0" step="10000" oninput="calc()"></div>
+            <div class="field-note">Employer PF &amp; Gratuity will be stripped before computing take-home.</div>
+          </div>
+        </div>
+        <div id="basic-mode" style="display:none">
+          <div class="field-row">
+            <div class="field">
+              <label>Basic Pay (annual)</label>
+              <div class="input-wrap"><span class="pfx">₹</span><input type="number" id="basic" value="480000" min="0" step="10000" oninput="calc()"></div>
+            </div>
+            <div class="field">
+              <label>HRA (annual)</label>
+              <div class="input-wrap"><span class="pfx">₹</span><input type="number" id="hra" value="240000" min="0" step="5000" oninput="calc()"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Other Allowances (annual)</label>
+            <div class="input-wrap"><span class="pfx">₹</span><input type="number" id="other-allow" value="180000" min="0" step="5000" oninput="calc()"></div>
+          </div>
+          <div class="field">
+            <label>Special Allowance / Bonus (annual)</label>
+            <div class="input-wrap"><span class="pfx">₹</span><input type="number" id="special" value="300000" min="0" step="5000" oninput="calc()"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-title">Old Regime Deductions</div>
+        <div class="ded-toggle"><span class="ded-label">Section 80C (PF, PPF, ELSS, LIC…)</span><button class="mini-toggle on" id="tog-80c" onclick="this.classList.toggle('on');calc()"></button></div>
+        <div class="field" id="ded-80c-field">
+          <div class="input-wrap"><span class="pfx">₹</span><input type="number" id="ded-80c" value="150000" max="150000" oninput="calc()"></div>
+          <div class="field-note">Max ₹1,50,000 under 80C</div>
+        </div>
+        <div class="ded-toggle"><span class="ded-label">Section 80D (Health Insurance)</span><button class="mini-toggle on" id="tog-80d" onclick="this.classList.toggle('on');calc()"></button></div>
+        <div class="field" id="ded-80d-field">
+          <div class="input-wrap"><span class="pfx">₹</span><input type="number" id="ded-80d" value="25000" max="100000" oninput="calc()"></div>
+        </div>
+        <div class="ded-toggle"><span class="ded-label">HRA Exemption (if renting)</span><button class="mini-toggle" id="tog-hra" onclick="this.classList.toggle('on');calc()"></button></div>
+        <div class="ded-toggle" style="margin-top:.5rem"><span class="ded-label">Section 80CCD(1B) — NPS</span><button class="mini-toggle" id="tog-nps" onclick="this.classList.toggle('on');calc()"></button></div>
+        <div class="field" id="ded-nps-field" style="display:none">
+          <div class="input-wrap"><span class="pfx">₹</span><input type="number" id="ded-nps" value="50000" max="50000" oninput="calc()"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-title">Other</div>
+        <div class="field">
+          <label>Professional Tax (monthly)</label>
+          <div class="input-wrap"><span class="pfx">₹</span><input type="number" id="prof-tax" value="200" oninput="calc()"></div>
+        </div>
+        <div class="field">
+          <label>City (for HRA exemption)</label>
+          <select id="city-type" onchange="calc()" style="width:100%;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:0;background:var(--cream);font-family:'Inter',sans-serif;font-size:.875rem;color:var(--ink);outline:none;appearance:none;">
+            <option value="metro">Metro (Delhi, Mumbai, Chennai, Kolkata) — 50% HRA</option>
+            <option value="nonmetro">Non-Metro — 40% HRA</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-col">
+      <div class="winner-banner" id="winner-banner">
+        <div class="wb-emoji" id="wb-emoji">💰</div>
+        <div class="wb-text">
+          <div class="wb-label">Recommended Regime</div>
+          <div class="wb-val" id="wb-val">Calculating…</div>
+          <div class="wb-sub" id="wb-sub">—</div>
+        </div>
+      </div>
+
+      <div class="waterfall-grid">
+        <!-- OLD REGIME -->
+        <div class="wf-col" id="old-col">
+          <div class="wfc-header">
+            <span class="wfc-title">Old Regime</span>
+            <span class="wfc-badge badge-alt" id="old-badge">—</span>
+          </div>
+          <div id="old-bars"></div>
+          <div class="wfc-takehome">
+            <div>
+              <div class="wfc-th-label">Annual Take-Home</div>
+              <div class="wfc-th-monthly" id="old-monthly">—/mo</div>
+            </div>
+            <div class="wfc-th-val" id="old-takehome">—</div>
+          </div>
+        </div>
+        <!-- NEW REGIME -->
+        <div class="wf-col" id="new-col">
+          <div class="wfc-header">
+            <span class="wfc-title">New Regime</span>
+            <span class="wfc-badge badge-alt" id="new-badge">—</span>
+          </div>
+          <div id="new-bars"></div>
+          <div class="wfc-takehome">
+            <div>
+              <div class="wfc-th-label">Annual Take-Home</div>
+              <div class="wfc-th-monthly" id="new-monthly">—/mo</div>
+            </div>
+            <div class="wfc-th-val" id="new-takehome">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tax-breakdown">
+        <div class="tb-title">Detailed Tax Breakdown</div>
+        <div class="tb-grid">
+          <div id="old-breakdown"></div>
+          <div id="new-breakdown"></div>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        <strong>Disclaimer:</strong> This tool uses standard income tax slabs for FY 2024-25 as per the Union Budget. It does not account for surcharge (for income &gt;₹50L), cess calculation edge cases, or all state-specific professional tax rates. Standard deduction of ₹75,000 (New Regime, Budget 2024) and ₹50,000 (Old Regime) applied automatically. Always consult a CA for official filing. &nbsp;·&nbsp; <strong>No data is stored or transmitted.</strong>
+      </div>
+    </div>
+  </div>
+</main>
+
+<section class="th-about">
+  <div class="th-about-inner">
+    <span class="th-about-eyebrow">✦ About This Tool</span>
+    <div class="th-about-grid">
+      <div>
+        <h2>Why we built the Take-Home Salary Visualizer</h2>
+        <p>An Indian CTC letter is famous for hiding the real number. Basic pay, HRA, special allowance, PF deductions, professional tax, and — the part that actually moves the needle — whether you pick the <strong>Old or New Tax Regime</strong>, all combine into a take-home figure that's genuinely hard to estimate by hand. This tool breaks a CTC down into its components and shows exactly what lands in your account each month under both regimes, side by side.</p>
+        <p>It applies the current slab rates, standard deduction, and Section 80C/80D style exemptions (Old Regime) or the simplified slabs (New Regime), then visualises where every rupee of your CTC actually goes — so you can make an informed regime choice instead of guessing.</p>
+      </div>
+      <div class="th-facts">
+        <div class="th-fact"><div class="th-fact-k">Privacy</div><div class="th-fact-v">Your CTC and salary details are calculated locally and never leave your browser.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Compares</div><div class="th-fact-v">Old vs. New Tax Regime take-home pay, side by side, for the current financial year.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Note</div><div class="th-fact-v">For estimation only — confirm final figures with your employer's payroll or a tax advisor.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="th-footer">
+  <span>Made with ❤️ by <a href="https://www.teenywriter.dpdns.org">Teenywriter</a> &nbsp;·&nbsp; Designed by <a href="https://www.pixelshade.in">PixelShade Design Studios</a></span>
+  <a href="index.html">← Back to NEVR</a>
+</footer>
+
+<script>
+let inputMode = 'ctc';
+
+function setInputMode(m, btn) {
+  inputMode = m;
+  document.querySelectorAll('.im-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ctc-mode').style.display   = m==='ctc'   ? '' : 'none';
+  document.getElementById('basic-mode').style.display = m==='basic' ? '' : 'none';
+  calc();
+}
+
+function tog(id) { return document.getElementById(id).classList.contains('on'); }
+function val(id) { return parseFloat(document.getElementById(id).value)||0; }
+
+/* ══ SLAB TAX ══ */
+function computeOldTax(taxable) {
+  if (taxable <= 250000) return 0;
+  let tax = 0;
+  if (taxable > 1000000) { tax += (taxable-1000000)*0.30; taxable=1000000; }
+  if (taxable > 500000)  { tax += (taxable-500000)*0.20;  taxable=500000; }
+  if (taxable > 250000)  { tax += (taxable-250000)*0.05; }
+  // Rebate u/s 87A: if total taxable ≤ 5L, tax = 0
+  const origTaxable = parseFloat(document.getElementById(inputMode==='ctc'?'ctc':'basic')?.value)||0;
+  return tax;
+}
+
+function computeNewTax(taxable) {
+  // New slabs FY 2024-25 (Budget 2024)
+  const slabs = [[300000,0],[300000,0.05],[300000,0.10],[300000,0.15],[300000,0.20],[Infinity,0.30]];
+  let remaining = Math.max(0, taxable);
+  let tax = 0;
+  for (const [limit, rate] of slabs) {
+    if (remaining <= 0) break;
+    const chunk = Math.min(remaining, limit);
+    tax += chunk * rate;
+    remaining -= chunk;
+  }
+  // Rebate u/s 87A: if income ≤ 7L, tax = 0
+  if (taxable <= 700000) tax = 0;
+  return tax;
+}
+
+function addCess(tax) { return tax * 1.04; } // 4% cess
+
+/* ══ MAIN CALC ══ */
+function calc() {
+  // NPS toggle field visibility
+  document.getElementById('ded-nps-field').style.display = tog('tog-nps') ? '' : 'none';
+
+  let grossAnnual, basicAnnual, hraAnnual;
+  const employerPF_rate = 0.12;
+  const gratuityFactor  = 4.81/100; // ≈4.81% of basic
+
+  if (inputMode === 'ctc') {
+    const ctc = val('ctc');
+    // Reverse-calc: CTC = Gross + Employer PF + Gratuity
+    // Employer PF = 12% of basic. Basic ≈ 40% of CTC for estimation
+    const estimatedBasic = ctc * 0.40;
+    const employerPF     = estimatedBasic * employerPF_rate;
+    const gratuity       = estimatedBasic * gratuityFactor;
+    grossAnnual  = Math.max(0, ctc - employerPF - gratuity);
+    basicAnnual  = grossAnnual * 0.40;
+    hraAnnual    = grossAnnual * 0.20;
+  } else {
+    basicAnnual  = val('basic');
+    hraAnnual    = val('hra');
+    grossAnnual  = basicAnnual + hraAnnual + val('other-allow') + val('special');
+  }
+
+  const employeePF   = Math.min(basicAnnual * employerPF_rate, 21600); // cap
+  const profTax      = val('prof-tax') * 12;
+  const stdDedOld    = 50000;
+  const stdDedNew    = 75000;
+
+  // ── OLD REGIME ──
+  let hraExemption = 0;
+  if (tog('tog-hra')) {
+    const metro = document.getElementById('city-type').value === 'metro';
+    // HRA Exemption = min(HRA received, 50%/40% of basic, actual rent - 10% of basic)
+    // Since we don't have rent input, use max allowed: 50%/40% of basic
+    hraExemption = basicAnnual * (metro ? 0.50 : 0.40);
+    hraExemption = Math.min(hraExemption, hraAnnual);
+  }
+  const ded80c = tog('tog-80c') ? Math.min(val('ded-80c'), 150000) : 0;
+  const ded80d = tog('tog-80d') ? Math.min(val('ded-80d'), 100000) : 0;
+  const dedNPS = tog('tog-nps') ? Math.min(val('ded-nps'), 50000)  : 0;
+
+  const oldTaxableIncome = Math.max(0, grossAnnual - stdDedOld - employeePF - hraExemption - ded80c - ded80d - dedNPS - profTax);
+  const oldTaxBase = computeOldTax(oldTaxableIncome);
+  const oldTax87A  = oldTaxableIncome <= 500000 ? 0 : oldTaxBase;
+  const oldTax     = addCess(oldTax87A);
+  const oldTakeHome = grossAnnual - oldTax - employeePF - profTax;
+
+  // ── NEW REGIME ──
+  const newTaxableIncome = Math.max(0, grossAnnual - stdDedNew);
+  const newTaxBase = computeNewTax(newTaxableIncome);
+  const newTax     = addCess(newTaxBase);
+  const newTakeHome = grossAnnual - newTax - employeePF - profTax;
+
+  // ── RENDER ──
+  const oldBetter = oldTakeHome >= newTakeHome;
+  const diff = Math.abs(oldTakeHome - newTakeHome);
+
+  document.getElementById('wb-val').textContent = (oldBetter ? 'Old Regime' : 'New Regime') + ' saves you more';
+  document.getElementById('wb-sub').textContent = `₹${fmtL(diff)} more per year · ₹${fmtL(diff/12)}/month extra in hand`;
+
+  document.getElementById('old-badge').textContent = oldBetter ? '✓ Recommended' : 'Higher Tax';
+  document.getElementById('new-badge').textContent = !oldBetter ? '✓ Recommended' : 'Higher Tax';
+  document.getElementById('old-badge').className = 'wfc-badge ' + (oldBetter ? 'badge-recommended' : 'badge-alt');
+  document.getElementById('new-badge').className = 'wfc-badge ' + (!oldBetter ? 'badge-recommended' : 'badge-alt');
+  document.getElementById('old-col').classList.toggle('recommended', oldBetter);
+  document.getElementById('new-col').classList.toggle('recommended', !oldBetter);
+
+  const maxBar = grossAnnual;
+  function barHTML(label, value, fillClass, deduct=false) {
+    const pct = Math.min(100, Math.max(0, value/maxBar*100));
+    return `<div class="wf-bar-group">
+      <div class="wfb-meta">
+        <span class="wfb-label">${label}</span>
+        <span class="wfb-val ${deduct?'deduct':''}">${deduct?'−':''}₹${fmtL(value)}</span>
+      </div>
+      <div class="wf-track"><div class="wf-fill ${fillClass}" style="width:${pct.toFixed(1)}%"></div></div>
+    </div>`;
+  }
+
+  document.getElementById('old-bars').innerHTML =
+    barHTML('Gross Income', grossAnnual, 'fill-ctc') +
+    barHTML('Employee PF (12%)', employeePF, 'fill-pf', true) +
+    barHTML('Deductions (80C+80D+HRA…)', ded80c+ded80d+hraExemption+dedNPS, 'fill-ded80c', true) +
+    barHTML('Income Tax + Cess', oldTax, 'fill-tax', true) +
+    `<div class="wf-divider"></div>` +
+    barHTML('Take-Home', Math.max(0,oldTakeHome), 'fill-takehome');
+
+  document.getElementById('new-bars').innerHTML =
+    barHTML('Gross Income', grossAnnual, 'fill-ctc') +
+    barHTML('Employee PF (12%)', employeePF, 'fill-pf', true) +
+    barHTML('Std. Deduction (₹75k)', stdDedNew, 'fill-ded80c', true) +
+    barHTML('Income Tax + Cess', newTax, 'fill-tax', true) +
+    `<div class="wf-divider"></div>` +
+    barHTML('Take-Home', Math.max(0,newTakeHome), 'fill-takehome');
+
+  document.getElementById('old-takehome').textContent = '₹'+fmtL(Math.max(0,oldTakeHome));
+  document.getElementById('new-takehome').textContent = '₹'+fmtL(Math.max(0,newTakeHome));
+  document.getElementById('old-monthly').textContent = '₹'+fmtL(Math.max(0,oldTakeHome/12))+'/mo';
+  document.getElementById('new-monthly').textContent = '₹'+fmtL(Math.max(0,newTakeHome/12))+'/mo';
+
+  function breakdownHTML(title, rows) {
+    return `<div style="margin-bottom:.35rem;font-size:.68rem;font-weight:700;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase">${title}</div>` +
+      rows.map(([l,v,cls])=>`<div class="tb-row"><span class="tbr-label">${l}</span><span class="tbr-val ${cls||''}">${v}</span></div>`).join('');
+  }
+
+  document.getElementById('old-breakdown').innerHTML = breakdownHTML('Old Regime', [
+    ['Gross Annual','₹'+fmtL(grossAnnual),''],
+    ['Std. Deduction','−₹50,000','red'],
+    ['80C Deductions', ded80c?'−₹'+fmtL(ded80c):'Not claimed','red'],
+    ['HRA Exemption', hraExemption?'−₹'+fmtL(hraExemption):'Not claimed','red'],
+    ['80D (Health Ins.)', ded80d?'−₹'+fmtL(ded80d):'Not claimed','red'],
+    ['Taxable Income','₹'+fmtL(oldTaxableIncome),''],
+    ['Tax + 4% Cess','₹'+fmtL(oldTax),'red'],
+    ['Employee PF','₹'+fmtL(employeePF),'red'],
+    ['Annual Take-Home','₹'+fmtL(Math.max(0,oldTakeHome)),'green'],
+    ['Monthly Take-Home','₹'+fmtL(Math.max(0,oldTakeHome/12)),'green'],
+  ]);
+
+  document.getElementById('new-breakdown').innerHTML = breakdownHTML('New Regime', [
+    ['Gross Annual','₹'+fmtL(grossAnnual),''],
+    ['Std. Deduction','−₹75,000','red'],
+    ['No 80C/80D/HRA','Not available',''],
+    ['','',''],
+    ['','',''],
+    ['Taxable Income','₹'+fmtL(newTaxableIncome),''],
+    ['Tax + 4% Cess','₹'+fmtL(newTax),'red'],
+    ['Employee PF','₹'+fmtL(employeePF),'red'],
+    ['Annual Take-Home','₹'+fmtL(Math.max(0,newTakeHome)),'green'],
+    ['Monthly Take-Home','₹'+fmtL(Math.max(0,newTakeHome/12)),'green'],
+  ]);
+}
+
+function fmtL(n) {
+  n = Math.round(n);
+  if (n >= 10000000) return (n/10000000).toFixed(2)+' Cr';
+  if (n >= 100000)   return (n/100000).toFixed(2)+' L';
+  return n.toLocaleString('en-IN');
+}
+
+calc();
+</script>
+</body>
+</html>

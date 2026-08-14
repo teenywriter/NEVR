@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A4 Barcode Label Builder — NEVR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#030509;--cream2:#0c1120;--cream3:#0c1120;
+  --ink:#edeff7;--ink2:#aab0cc;--ink3:#7c84a0;--ink4:#4b5170;
+  --border:#1b2440;--border2:#12172a;
+  --white:#090c14;
+  --sage:#52d17c;--sage-l:rgba(82,209,124,.10);
+  --terra:#ff8a5c;--terra-l:rgba(255,138,92,.10);
+  --blue:#6e85ff;--blue-l:rgba(110,133,255,.10);
+  --amber:#f2b84b;--amber-l:rgba(242,184,75,.10);
+  --radius:0;
+  --shadow:none;
+  --shadow-lg:none;
+  --mono:'JetBrains Mono',monospace;
+
+  --void:#030509;--panel:#090c14;--panel-2:#0c1120;
+  --line:#1b2440;--line-soft:#12172a;
+  --royal:#3355ff;--royal-bright:#6e85ff;--royal-dim:#1a2a80;
+  --f-display:'Space Grotesk',sans-serif;--f-body:'Inter',sans-serif;--f-mono:'JetBrains Mono',monospace;
+}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+nav{padding:.875rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+nav a{color:var(--ink3);text-decoration:none;font-size:.82rem;transition:color .2s;}
+nav a:hover{color:var(--ink);}
+.nav-sep{color:var(--border);}
+.nav-cur{color:var(--ink);font-weight:500;}
+
+.app-shell{flex:1;display:grid;grid-template-columns:390px 1fr;gap:0;height:calc(100vh - 49px);overflow:hidden;}
+
+/* LEFT */
+.left-panel{overflow-y:auto;overflow-x:hidden;padding:1.25rem;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:1rem;height:100%;}
+.left-panel::-webkit-scrollbar{width:6px;}
+.left-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:0;} .left-panel::-webkit-scrollbar-track{background:transparent;} .right-panel::-webkit-scrollbar{width:6px;} .right-panel::-webkit-scrollbar-thumb{background:rgba(0,0,0,.25);border-radius:0;} .right-panel::-webkit-scrollbar-track{background:transparent;}
+.panel-block{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow);}
+.block-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink4);margin-bottom:.9rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);}
+.field{margin-bottom:.65rem;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:.75rem;font-weight:500;color:var(--ink2);margin-bottom:.25rem;}
+.field input,.field select,.field textarea{width:100%;padding:.45rem .65rem;border:1.5px solid var(--border);border-radius:0;background:var(--cream);font-family:'Inter',sans-serif;font-size:.875rem;color:var(--ink);outline:none;transition:border-color .2s;appearance:none;resize:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--sage);}
+.field input::placeholder,.field textarea::placeholder{color:var(--ink4);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+.field-row-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.4rem;}
+
+/* Preset tabs — scrollable */
+.preset-tabs{display:flex;gap:.35rem;overflow-x:auto;padding-bottom:.3rem;margin-bottom:.75rem;}
+.preset-tabs::-webkit-scrollbar{height:3px;}
+.preset-tabs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:0;}
+.preset-group-label{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink4);margin-bottom:.3rem;margin-top:.5rem;}
+.preset-group-label:first-child{margin-top:0;}
+.preset-tab{padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:0;font-size:.7rem;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;background:var(--cream2);white-space:nowrap;flex-shrink:0;}
+.preset-tab.active,.preset-tab:hover{background:var(--sage);color:var(--white);border-color:var(--sage);}
+.preset-desc{font-size:.62rem;color:var(--ink4);margin-top:.5rem;padding:.4rem .6rem;background:var(--cream);border-radius:0;line-height:1.4;}
+
+/* Margin / gutter controls */
+.margin-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+.mini-field{display:flex;flex-direction:column;gap:.2rem;}
+.mini-field label{font-size:.65rem;color:var(--ink3);}
+.mini-field input{padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:0;background:var(--cream);font-family:'Inter',sans-serif;font-size:.8rem;color:var(--ink);outline:none;transition:border-color .2s;text-align:center;}
+.mini-field input:focus{border-color:var(--sage);}
+
+/* SKU area */
+.sku-textarea{font-family:var(--mono);font-size:.75rem;line-height:1.6;min-height:130px;}
+.sku-hint{font-size:.68rem;color:var(--ink4);margin-top:.3rem;line-height:1.45;}
+.sku-hint code{background:var(--cream2);padding:.05rem .3rem;border-radius:0;font-family:var(--mono);}
+.sku-count{font-size:.68rem;color:var(--ink3);margin-top:.3rem;font-weight:500;}
+
+/* Check rows */
+.check-group{display:flex;flex-direction:column;gap:.35rem;}
+.check-row{display:flex;align-items:center;gap:.45rem;cursor:pointer;}
+.check-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--sage);cursor:pointer;}
+.check-row span{font-size:.78rem;color:var(--ink2);}
+
+.action-btn{width:100%;padding:.65rem;border-radius:0;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid transparent;display:flex;align-items:center;justify-content:center;gap:.4rem;}
+.action-btn.print{background:var(--sage);color:var(--white);}
+.action-btn.print:hover{background:#3fb56a;}
+.action-btn.secondary{background:var(--white);color:var(--ink2);border-color:var(--border);}
+.action-btn.secondary:hover{background:var(--royal);color:#fff;border-color:var(--royal);}
+
+/* RIGHT */
+.right-panel{overflow-y:auto;overflow-x:hidden;background:#05070c;display:flex;flex-direction:column;height:100%;}
+.right-panel::-webkit-scrollbar{width:4px;}
+.right-panel::-webkit-scrollbar-thumb{background:rgba(0,0,0,.3);border-radius:0;}
+.preview-toolbar{padding:.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;background:var(--cream);flex-shrink:0;}
+.preview-toolbar span{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);}
+.tb-stat{font-size:.72rem;color:var(--ink4);margin-left:auto;}
+.tb-btn{padding:.3rem .8rem;border:1.5px solid var(--border);border-radius:0;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:500;cursor:pointer;background:var(--white);color:var(--ink2);transition:all .15s;}
+.tb-btn:hover{background:var(--royal);color:#fff;border-color:var(--royal);}
+.tb-btn.print{background:var(--sage);color:var(--white);border-color:var(--sage);}
+.tb-btn.print:hover{background:#3fb56a;}
+
+/* Paper / labels */
+.paper-wrap{padding:1.25rem;display:flex;flex-direction:column;align-items:center;gap:1rem;}
+.a4-sheet{background:white;width:210mm;min-height:297mm;position:relative;box-shadow:0 4px 24px rgba(0,0,0,.45);flex-shrink:0;}
+.label-grid{position:absolute;display:grid;}
+.label-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:white;}
+.label-cell svg{display:block;width:100%;height:auto;}
+.label-name{font-family:'Inter',sans-serif;color:#333;text-align:center;line-height:1.2;word-break:break-word;padding:0 1px;}
+.label-price{font-family:var(--mono);color:#111;font-weight:700;text-align:center;}
+.empty-preview{display:flex;align-items:center;justify-content:center;min-height:200px;color:#bbb;font-size:.85rem;text-align:center;padding:2rem;}
+
+.disclaimer{font-size:.72rem;color:var(--ink3);line-height:1.55;padding:.9rem 1.5rem;border-top:1px solid var(--border);background:var(--cream);}
+.disclaimer strong{color:var(--ink2);}
+
+@media print{
+  nav,.left-panel,.preview-toolbar,.disclaimer,.th-about,.th-footer{display:none!important;}
+  .app-shell{display:block;max-height:none;overflow:visible;}
+  .right-panel{background:white;overflow:visible;}
+  .paper-wrap{padding:0;gap:0;}
+  .a4-sheet{box-shadow:none;}
+  body{background:white;}
+}
+@media(max-width:860px){.app-shell{grid-template-columns:1fr;height:auto;overflow:visible;} .left-panel{height:auto;overflow-y:visible;} .right-panel{height:auto;min-height:600px;overflow-y:visible;}}
+
+/* ══════════ NEVR shared chrome ══════════ */
+.th-nav{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:0 2rem;height:58px;background:rgba(3,5,9,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;}
+.th-brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;flex-shrink:0;}
+.th-brand-mark{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.th-crumb{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--ink3);min-width:0;}
+.th-crumb a{color:inherit;text-decoration:none;transition:color .2s;}
+.th-crumb a:hover{color:var(--royal-bright);}
+.th-crumb .th-sep{color:var(--ink4,var(--ink3));}
+.th-crumb .th-cur{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.th-nav-extra{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.th-about{max-width:1080px;margin:0 auto;padding:4rem 2rem 3.5rem;}
+.th-about-inner{border-top:1px solid var(--line-soft);padding-top:3.5rem;}
+.th-about-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);border:1px solid var(--line);padding:6px 12px;background:rgba(51,85,255,.06);margin-bottom:20px;}
+.th-about h2{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,2.4vw,28px);letter-spacing:-.01em;line-height:1.25;margin-bottom:18px;max-width:34ch;color:var(--ink);}
+.th-about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start;}
+.th-about p{color:var(--ink3);font-size:14px;line-height:1.75;margin-bottom:13px;font-family:var(--f-body);font-weight:300;}
+.th-about p:last-child{margin-bottom:0;}
+.th-about p strong{color:var(--ink);font-weight:600;}
+.th-facts{border:1px solid var(--line);background:var(--panel-2);}
+.th-fact{padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+.th-fact:last-child{border-bottom:none;}
+.th-fact-k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);margin-bottom:6px;}
+.th-fact-v{font-size:13px;color:var(--ink);line-height:1.55;font-family:var(--f-body);}
+
+.th-footer{border-top:1px solid var(--line-soft);padding:24px 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--ink3);}
+.th-footer a{color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px;text-decoration:none;}
+.th-footer a:hover{color:var(--royal-bright);border-color:var(--royal);}
+
+@media (max-width:640px){
+  .th-about{padding:3rem 1.2rem;}
+  .th-about-grid{grid-template-columns:1fr;gap:28px;}
+  .th-nav{padding:0 1.2rem;gap:10px;height:auto;min-height:54px;}
+  .th-footer{padding:18px 1.2rem;flex-direction:column;align-items:flex-start;}
+}
+
+</style>
+</head>
+<body>
+<nav class="th-nav">
+  <a href="index.html" class="th-brand"><img src="nevrwhite.png" class="th-brand-mark" alt="NEVR"></a>
+  <div class="th-crumb"><a href="index.html"></a><span class="th-sep">/</span><span class="th-cur">A4 Barcode Label Builder</span></div>
+</nav>
+<div class="app-shell">
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+
+    <!-- Brand presets -->
+    <div class="panel-block">
+      <div class="block-title">Label Sheet Preset</div>
+      <div id="preset-list"></div>
+      <div class="preset-desc" id="preset-desc">Select a preset above to auto-fill all margin and gutter values.</div>
+    </div>
+
+    <!-- Page geometry -->
+    <div class="panel-block">
+      <div class="block-title">Page Geometry (mm)</div>
+      <div class="field-row">
+        <div class="field"><label>Columns</label><input type="number" id="g-cols" value="4" min="1" max="10" oninput="renderPreview()"></div>
+        <div class="field"><label>Rows / page</label><input type="number" id="g-rows" value="10" min="1" max="30" oninput="renderPreview()"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Label Width</label><input type="number" id="g-w" value="45.7" min="5" step="0.1" oninput="renderPreview()"></div>
+        <div class="field"><label>Label Height</label><input type="number" id="g-h" value="25.5" min="5" step="0.1" oninput="renderPreview()"></div>
+      </div>
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);margin:.5rem 0 .4rem">Margins & Gutters</div>
+      <div class="margin-grid">
+        <div class="mini-field"><label>Top Margin</label><input type="number" id="g-mt" value="21.0" min="0" step="0.1" oninput="renderPreview()"></div>
+        <div class="mini-field"><label>Left Margin</label><input type="number" id="g-ml" value="9.8" min="0" step="0.1" oninput="renderPreview()"></div>
+        <div class="mini-field"><label>H Gap (gutter)</label><input type="number" id="g-gx" value="2.5" min="0" step="0.1" oninput="renderPreview()"></div>
+        <div class="mini-field"><label>V Gap (gutter)</label><input type="number" id="g-gy" value="0" min="0" step="0.1" oninput="renderPreview()"></div>
+      </div>
+    </div>
+
+    <!-- Barcode settings -->
+    <div class="panel-block">
+      <div class="block-title">Barcode Settings</div>
+      <div class="field">
+        <label>Barcode Type</label>
+        <select id="barcode-type" onchange="renderPreview()">
+          <option value="CODE128">Code 128 — Universal (SKU/text)</option>
+          <option value="EAN13">EAN-13 — Retail (12 digits)</option>
+          <option value="CODE39">Code 39 — Alphanumeric</option>
+          <option value="UPC">UPC-A — US Retail (11 digits)</option>
+          <option value="ITF14">ITF-14 — Shipping/Logistics</option>
+        </select>
+      </div>
+      <div class="check-group">
+        <label class="check-row"><input type="checkbox" id="show-text" checked onchange="renderPreview()"><span>Show barcode number below bars</span></label>
+        <label class="check-row"><input type="checkbox" id="show-price" checked onchange="renderPreview()"><span>Show price on label</span></label>
+        <label class="check-row"><input type="checkbox" id="show-name" onchange="renderPreview()"><span>Show item name on label</span></label>
+        <label class="check-row"><input type="checkbox" id="show-border" checked onchange="renderPreview()"><span>Show label border (cut guide)</span></label>
+      </div>
+    </div>
+
+    <!-- SKU input -->
+    <div class="panel-block">
+      <div class="block-title">Items List</div>
+      <div class="field">
+        <label>Paste SKUs — one per line</label>
+        <textarea class="sku-textarea" id="sku-input" placeholder="SKU001|Item Name|₹299&#10;SKU002|Red Shirt XL|₹599&#10;8901234567890&#10;SKU003&#10;&#10;Excel/Sheets paste (tab-separated) also works!" oninput="renderPreview()"></textarea>
+        <div class="sku-hint">Format: <code>SKU|Name|Price</code> &nbsp;·&nbsp; Tab / comma delimiters auto-detected &nbsp;·&nbsp; Excel paste works directly.</div>
+        <div class="sku-count" id="sku-count">0 items · 0 labels · 0 pages</div>
+      </div>
+      <div class="field">
+        <label>Repeat each label (copies)</label>
+        <input type="number" id="repeat-count" value="1" min="1" max="200" oninput="renderPreview()">
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="panel-block">
+      <div class="block-title">Export</div>
+      <div style="display:flex;flex-direction:column;gap:.45rem">
+        <button class="action-btn print" onclick="window.print()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="5" width="10" height="7" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M4 5V3h6v2M4 10h6M4 12h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Print Labels (Ctrl+P)
+        </button>
+        <button class="action-btn secondary" onclick="loadSample()">Load Sample Data</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="preview-toolbar">
+      <span>Print Preview</span>
+      <span class="tb-stat" id="tb-stat">Add items to begin</span>
+      <button class="tb-btn print" onclick="window.print()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="2" y="4" width="9" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M4 4V2h5v2M4 9h5M4 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Print
+      </button>
+    </div>
+    <div class="paper-wrap" id="paper-wrap">
+      <div class="empty-preview">Select a preset and paste your SKU list.</div>
+    </div>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <strong>Print at 100% scale</strong> — disable "Fit to page" or "Scale to fit" in your print dialog. &nbsp;·&nbsp; EAN-13 needs exactly 12 digits (check digit auto-appended). &nbsp;·&nbsp; Always scan-test a sample before printing a full batch. &nbsp;·&nbsp; Physical sticker sheet margins vary slightly by manufacturing batch — do a test print first.
+</div>
+
+<section class="th-about">
+  <div class="th-about-inner">
+    <span class="th-about-eyebrow">✦ About This Tool</span>
+    <div class="th-about-grid">
+      <div>
+        <h2>Why we built the A4 Barcode Label Builder</h2>
+        <p>Small retailers and warehouse teams in India rarely need a dedicated label printer — they need a page of accurate barcode stickers on the A4 sheets they already buy in bulk. This tool takes a pasted SKU list (straight from Excel or Google Sheets, tab-separated and all), lays it out against the exact millimetre geometry of common Indian sticker sheet brands, and renders a print-ready page of Code 128, EAN-13, Code 39, UPC-A, or ITF-14 barcodes.</p>
+        <p>Getting the <strong>margins and gutters right</strong> is the entire game with die-cut label sheets — a print that's off by a millimetre means every barcode lands slightly on the cut line. The built-in presets encode the real-world measurements for popular sheet formats, and everything renders live so you can see exactly how a page will look before it touches your printer.</p>
+      </div>
+      <div class="th-facts">
+        <div class="th-fact"><div class="th-fact-k">Privacy</div><div class="th-fact-v">Runs fully in-browser. Your SKU list, prices, and item names are never uploaded.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Formats</div><div class="th-fact-v">Code 128, EAN-13, Code 39, UPC-A, and ITF-14 — with optional name and price.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Print-ready</div><div class="th-fact-v">Millimetre-accurate presets for real Indian A4 sticker sheets, scan-testable before a full run.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="th-footer">
+  <span>Made with ❤️ by <a href="https://www.teenywriter.dpdns.org">Teenywriter</a> &nbsp;·&nbsp; Designed by <a href="https://www.pixelshade.in">PixelShade Design Studios</a></span>
+  <a href="index.html">← Back to NEVR</a>
+</footer>
+
+<script>
+/* ══ EXACT INDIAN PHYSICAL LABEL SHEET PRESETS ══
+   Millimetre-accurate margins & gutters for real sticker sheets sold in India.
+   Using these prevents the "drift" problem where barcodes creep off labels by row 3+. */
+const PRESETS = {
+  // NovaJet (TechNova) — Dominant in Indian local stationery shops
+  'NJ-16': { brand:'NovaJet', name:'NJ 16-up', desc:'99×34mm · 2 col × 8 row', cols:2, rows:8, wMM:99.0, hMM:34.0, marginTop:12.5, marginLeft:4.5, gapX:3.0, gapY:0.0 },
+  'NJ-24': { brand:'NovaJet', name:'NJ 24-up', desc:'64×34mm · 3×8', cols:3, rows:8, wMM:64.0, hMM:34.0, marginTop:12.5, marginLeft:6.0, gapX:3.0, gapY:0.0 },
+  'NJ-40': { brand:'NovaJet', name:'NJ 40-up', desc:'39×35mm · 5×8', cols:5, rows:8, wMM:39.0, hMM:35.0, marginTop:3.0, marginLeft:4.5, gapX:1.5, gapY:1.5 },
+  'NJ-65': { brand:'NovaJet', name:'NJ 65-up', desc:'38×21mm · 5×13', cols:5, rows:13, wMM:38.0, hMM:21.0, marginTop:12.0, marginLeft:5.0, gapX:2.0, gapY:0.0 },
+  // Oddy (ST Series) — Popular for e-commerce shipping labels
+  'OD-21': { brand:'Oddy', name:'Oddy 21-up', desc:'63.5×38.1mm · 3×7', cols:3, rows:7, wMM:63.5, hMM:38.1, marginTop:15.1, marginLeft:7.2, gapX:2.5, gapY:0.0 },
+  'OD-24': { brand:'Oddy', name:'Oddy 24-up', desc:'64×34mm · 3×8', cols:3, rows:8, wMM:64.0, hMM:34.0, marginTop:12.5, marginLeft:9.0, gapX:0.0, gapY:0.0 },
+  'OD-65': { brand:'Oddy', name:'Oddy 65-up', desc:'38.1×21.2mm · 5×13', cols:5, rows:13, wMM:38.1, hMM:21.2, marginTop:10.7, marginLeft:9.75, gapX:0.0, gapY:0.0 },
+  'OD-84': { brand:'Oddy', name:'Oddy 84-up', desc:'46×11mm · 4×21', cols:4, rows:21, wMM:46.0, hMM:11.0, marginTop:33.0, marginLeft:13.0, gapX:0.0, gapY:0.0 },
+  // Desmat/Avery — Global e-commerce standard, Amazon FBA
+  'DS-4':  { brand:'Desmat/Avery', name:'Desmat 4-up', desc:'99.1×139mm · 2×2', cols:2, rows:2, wMM:99.1, hMM:139.0, marginTop:9.5, marginLeft:4.6, gapX:2.6, gapY:0.0 },
+  'DS-14': { brand:'Desmat/Avery', name:'Desmat 14-up', desc:'99.1×38.1mm · 2×7', cols:2, rows:7, wMM:99.1, hMM:38.1, marginTop:15.1, marginLeft:4.6, gapX:2.6, gapY:0.0 },
+  // Amazon FBA / FNSKU labels
+  'FBA-27':{ brand:'Amazon FBA', name:'FBA 27-up', desc:'63.5×29.6mm · 3×9', cols:3, rows:9, wMM:63.5, hMM:29.6, marginTop:15.3, marginLeft:7.2, gapX:2.5, gapY:0.0 },
+  'FBA-40':{ brand:'Amazon FBA', name:'FBA 40-up', desc:'52.5×29.7mm · 4×10', cols:4, rows:10, wMM:52.5, hMM:29.7, marginTop:0.0, marginLeft:0.0, gapX:0.0, gapY:0.0 },
+  'FBA-44':{ brand:'Amazon FBA', name:'FBA 44-up', desc:'48.5×25.4mm · 4×11', cols:4, rows:11, wMM:48.5, hMM:25.4, marginTop:8.8, marginLeft:8.0, gapX:0.0, gapY:0.0 },
+  // Custom — user fills manually
+  'custom':{ brand:'Custom', name:'Custom', desc:'Set your own values below', cols:4, rows:10, wMM:45.7, hMM:25.5, marginTop:21.0, marginLeft:9.8, gapX:2.5, gapY:0.0 },
+};
+
+let activePreset = 'FBA-40';
+
+/* ── BUILD PRESET UI ── */
+function buildPresetUI() {
+  const brands = {};
+  Object.entries(PRESETS).forEach(([key, p]) => {
+    if (!brands[p.brand]) brands[p.brand] = [];
+    brands[p.brand].push({ key, ...p });
+  });
+  const container = document.getElementById('preset-list');
+  container.innerHTML = Object.entries(brands).map(([brand, presets]) =>
+    `<div class="preset-group-label">${brand}</div>
+     <div class="preset-tabs">
+       ${presets.map(p =>
+         `<div class="preset-tab${p.key===activePreset?' active':''}" data-key="${p.key}" onclick="applyPreset('${p.key}')">${p.name}</div>`
+       ).join('')}
+     </div>`
+  ).join('');
+}
+
+function applyPreset(key) {
+  activePreset = key;
+  const p = PRESETS[key];
+  if (!p) return;
+  // Update all geometry inputs
+  document.getElementById('g-cols').value = p.cols;
+  document.getElementById('g-rows').value = p.rows;
+  document.getElementById('g-w').value   = p.wMM;
+  document.getElementById('g-h').value   = p.hMM;
+  document.getElementById('g-mt').value  = p.marginTop;
+  document.getElementById('g-ml').value  = p.marginLeft;
+  document.getElementById('g-gx').value  = p.gapX;
+  document.getElementById('g-gy').value  = p.gapY;
+  document.getElementById('preset-desc').textContent = p.desc + (key==='custom' ? ' — enter dimensions manually above.' : ' — margins & gutters auto-filled.');
+  // Update active state
+  document.querySelectorAll('.preset-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.key === key);
+  });
+  renderPreview();
+}
+
+/* ── GEOMETRY GETTERS ── */
+function geo() {
+  return {
+    cols: parseInt(document.getElementById('g-cols').value)||4,
+    rows: parseInt(document.getElementById('g-rows').value)||10,
+    wMM:  parseFloat(document.getElementById('g-w').value)||45,
+    hMM:  parseFloat(document.getElementById('g-h').value)||25,
+    marginTop:  parseFloat(document.getElementById('g-mt').value)||0,
+    marginLeft: parseFloat(document.getElementById('g-ml').value)||0,
+    gapX: parseFloat(document.getElementById('g-gx').value)||0,
+    gapY: parseFloat(document.getElementById('g-gy').value)||0,
+  };
+}
+
+/* ── PARSE SKUS — auto-detects tab, comma, or pipe delimiter ── */
+function parseSKUs() {
+  const raw = document.getElementById('sku-input').value.trim();
+  if (!raw) return [];
+  const repeat = parseInt(document.getElementById('repeat-count').value)||1;
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const items = lines.map(line => {
+    // Auto-detect delimiter: tab first, then pipe, then comma
+    let parts;
+    if (line.includes('\t'))      parts = line.split('\t');
+    else if (line.includes('|'))  parts = line.split('|');
+    else if (line.includes(','))  parts = line.split(',');
+    else                          parts = [line];
+    return {
+      sku:   parts[0]?.trim() || '',
+      name:  parts[1]?.trim() || '',
+      price: parts[2]?.trim() || '',
+    };
+  }).filter(i => i.sku);
+  // Apply repeat
+  const out = [];
+  items.forEach(item => { for (let r=0; r<repeat; r++) out.push(item); });
+  return out;
+}
+
+/* ── BARCODE SVG — dynamic sizing based on label dimensions ── */
+function generateBarcodeSVG(value, type, wMM, hMM) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  try {
+    let useType = type;
+    let useVal  = value;
+    if (type==='EAN13') {
+      const d = value.replace(/\D/g,'');
+      if (d.length < 12) useType = 'CODE128';
+      else useVal = d.slice(0,12);
+    }
+    if (type==='UPC') {
+      const d = value.replace(/\D/g,'');
+      if (d.length < 11) useType = 'CODE128';
+      else useVal = d.slice(0,11);
+    }
+    if (type==='ITF14') {
+      const d = value.replace(/\D/g,'');
+      if (d.length < 13) useType = 'CODE128';
+      else useVal = d.slice(0,14);
+    }
+
+    // Dynamic sizing: scale bar height & width to label size
+    // wMM → px at 96dpi/mm: 1mm ≈ 3.78px
+    const usableW = wMM * 3.78 * 0.88; // 88% of label width
+    // Bar height: scale with label height, reserve space for text & price
+    const barHeight = Math.max(10, Math.min(hMM * 3.78 * 0.45, 50));
+    // Line width: wider labels get slightly fatter bars for scannability
+    const lineWidth = wMM >= 80 ? 1.8 : (wMM >= 50 ? 1.4 : 1.1);
+
+    JsBarcode(svg, useVal, {
+      format: useType,
+      displayValue: document.getElementById('show-text').checked,
+      fontSize: Math.max(6, Math.min(wMM * 0.28, 9)),
+      margin: 2,
+      height: barHeight,
+      width: lineWidth,
+      background: 'transparent',
+      lineColor: '#111',
+    });
+    svg.style.cssText = `width:100%;height:auto;display:block;`;
+    return svg;
+  } catch(e) {
+    try {
+      JsBarcode(svg, value, { format:'CODE128', displayValue:document.getElementById('show-text').checked, fontSize:7, margin:2, height:Math.max(10,hMM*3.78*0.45), width:1.2, background:'transparent', lineColor:'#111' });
+      svg.style.cssText = `width:100%;height:auto;display:block;`;
+      return svg;
+    } catch(e2) { return null; }
+  }
+}
+
+/* ── RENDER PREVIEW ── */
+function renderPreview() {
+  const items    = parseSKUs();
+  const type     = document.getElementById('barcode-type').value;
+  const showPric = document.getElementById('show-price').checked;
+  const showName = document.getElementById('show-name').checked;
+  const showBord = document.getElementById('show-border').checked;
+  const { cols, rows, wMM, hMM, marginTop, marginLeft, gapX, gapY } = geo();
+  const perPage  = cols * rows;
+  const pages    = items.length ? Math.ceil(items.length / perPage) : 0;
+
+  // Stats
+  document.getElementById('sku-count').textContent =
+    `${items.length} label${items.length!==1?'s':''} · ${pages} page${pages!==1?'s':''}`;
+  document.getElementById('tb-stat').textContent =
+    items.length ? `${items.length} labels · ${pages} page${pages!==1?'s':''}` : 'Add items to begin';
+
+  const wrap = document.getElementById('paper-wrap');
+  if (!items.length) {
+    wrap.innerHTML = '<div class="empty-preview">Paste your SKU list on the left<br>and labels will appear here.</div>';
+    return;
+  }
+
+  // Font sizes scaled to label
+  const nameFontPt  = Math.max(4.5, Math.min(wMM * 0.12, 7));
+  const priceFontPt = Math.max(5,   Math.min(wMM * 0.16, 9));
+
+  wrap.innerHTML = '';
+  for (let page = 0; page < pages; page++) {
+    const sheet = document.createElement('div');
+    sheet.className = 'a4-sheet';
+
+    const grid = document.createElement('div');
+    grid.className = 'label-grid';
+    // ── KEY FIX: use exact margin + gutter from physical sheet data ──
+    grid.style.cssText = `
+      top:${marginTop}mm;
+      left:${marginLeft}mm;
+      grid-template-columns: repeat(${cols}, ${wMM}mm);
+      grid-template-rows: repeat(${rows}, ${hMM}mm);
+      column-gap: ${gapX}mm;
+      row-gap: ${gapY}mm;
+    `;
+
+    const pageItems = items.slice(page * perPage, (page+1) * perPage);
+    while (pageItems.length < perPage) pageItems.push(null);
+
+    pageItems.forEach(item => {
+      const cell = document.createElement('div');
+      cell.className = 'label-cell';
+      cell.style.cssText = `
+        width:${wMM}mm; height:${hMM}mm; padding:${Math.max(0.5,hMM*0.03)}mm ${Math.max(0.5,wMM*0.02)}mm;
+        border:${showBord ? '0.3px solid #ccc' : 'none'};
+        box-sizing:border-box;
+      `;
+
+      if (item) {
+        const svg = generateBarcodeSVG(item.sku, type, wMM, hMM);
+        if (svg) cell.appendChild(svg);
+        if (showName && item.name) {
+          const el = document.createElement('div');
+          el.className = 'label-name';
+          el.style.fontSize = nameFontPt + 'pt';
+          el.textContent = item.name;
+          cell.appendChild(el);
+        }
+        if (showPric && item.price) {
+          const el = document.createElement('div');
+          el.className = 'label-price';
+          el.style.fontSize = priceFontPt + 'pt';
+          el.textContent = item.price;
+          cell.appendChild(el);
+        }
+      }
+      grid.appendChild(cell);
+    });
+
+    sheet.appendChild(grid);
+    wrap.appendChild(sheet);
+  }
+}
+
+/* ── SAMPLE DATA ── */
+function loadSample() {
+  document.getElementById('sku-input').value =
+`SKU-MEN-001\tMen's White Shirt M\t₹599
+SKU-MEN-002\tMen's Blue Shirt L\t₹599
+SKU-WOM-001\tWomen's Kurti Red\t₹899
+SKU-WOM-002\tWomen's Kurti Blue\t₹849
+SKU-KID-001\tKids T-Shirt 6yr\t₹299
+SKU-KID-002\tKids T-Shirt 8yr\t₹299
+SKU-ACC-001\tLeather Belt Black\t₹349
+SKU-ACC-002\tCanvas Bag Brown\t₹499
+8901234567890\tBiscuit Pack 200g\t₹20
+8901234567897\tTea Powder 500g\t₹120`;
+  renderPreview();
+}
+
+/* ── INIT ── */
+buildPresetUI();
+applyPreset('FBA-40');
+</script>
+</body>
+</html>

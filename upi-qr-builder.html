@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UPI QR Builder — NEVR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #030509;
+  --cream2: #0c1120;
+  --ink: #edeff7;
+  --ink2: #aab0cc;
+  --ink3: #7c84a0;
+  --sage: #52d17c;
+  --sage-light: rgba(82,209,124,.10);
+  --terracotta: #ff8a5c;
+  --terra-light: rgba(255,138,92,.10);
+  --border: #1b2440;
+  --white: #090c14;
+  --radius:0;
+  --shadow:none;
+  --shadow-lg:none;
+
+  --void:#030509;--panel:#090c14;--panel-2:#0c1120;
+  --line:#1b2440;--line-soft:#12172a;
+  --royal:#3355ff;--royal-bright:#6e85ff;--royal-dim:#1a2a80;
+  --f-display:'Space Grotesk',sans-serif;--f-body:'Inter',sans-serif;--f-mono:'JetBrains Mono',monospace;
+}
+
+body { background: var(--cream); color: var(--ink); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+
+nav { padding: 1rem 2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; background: var(--cream); }
+nav a { color: var(--ink3); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+nav a:hover { color: var(--ink); }
+nav .sep { color: var(--border); }
+nav .current { color: var(--ink); font-weight: 500; }
+
+main { flex: 1; max-width: 860px; margin: 0 auto; padding: 3rem 2rem 3rem; width: 100%; }
+
+.page-header { margin-bottom: 2.5rem; }
+
+.tag { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--sage-light); color: var(--sage); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.3rem 0.7rem; border-radius:0; margin-bottom: 0.9rem; }
+
+h1 { font-family: 'Space Grotesk', serif; font-size: 2.4rem; font-weight: 400; line-height: 1.15; margin-bottom: 0.5rem; }
+h1 em { font-style: italic; color: var(--terracotta); }
+
+.subtitle { color: var(--ink3); font-size: 0.95rem; font-weight: 300; line-height: 1.6; }
+
+.layout { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; align-items: start; }
+
+.form-panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow); }
+
+.form-section { margin-bottom: 1.8rem; }
+.form-section:last-child { margin-bottom: 0; }
+
+.section-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink3); margin-bottom: 1rem; }
+
+.field { margin-bottom: 1rem; }
+
+label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink2); margin-bottom: 0.4rem; }
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius:0;
+  background: var(--cream);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.92rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  appearance: none;
+}
+
+input:focus, select:focus { border-color: var(--sage); background: var(--white); }
+input::placeholder { color: var(--ink3); }
+input.error { border-color: var(--terracotta); }
+
+.field-note { font-size: 0.75rem; color: var(--ink3); margin-top: 0.3rem; }
+.field-warn { font-size: 0.75rem; color: var(--terracotta); margin-top: 0.3rem; display: none; }
+.field-warn.show { display: block; }
+.field-err { font-size: 0.75rem; color: #ff5c5c; margin-top: 0.3rem; display: none; }
+.field-err.show { display: block; }
+
+.amount-row { display: grid; grid-template-columns: auto 1fr; }
+.currency-badge { display: flex; align-items: center; padding: 0 0.9rem; background: var(--cream2); border: 1.5px solid var(--border); border-right: none; border-radius:0 0 0 8px; font-size: 0.85rem; color: var(--ink2); font-weight: 500; }
+.amount-row input { border-radius: 0 8px 8px 0; }
+
+.app-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.app-pill { padding: 0.3rem 0.75rem; border: 1.5px solid var(--border); border-radius:0; font-size: 0.78rem; font-weight: 500; color: var(--ink2); cursor: pointer; transition: all 0.15s; background: var(--cream); }
+.app-pill:hover, .app-pill.active { background: var(--royal); color: #fff; border-color: var(--royal); }
+
+/* Advanced toggle */
+.adv-toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.78rem; color: var(--ink3); margin-bottom: 0.8rem; user-select: none; }
+.adv-toggle svg { transition: transform 0.2s; }
+.adv-toggle.open svg { transform: rotate(90deg); }
+.adv-body { display: none; }
+.adv-body.open { display: block; }
+
+.btn-generate { width: 100%; padding: 0.85rem; background: var(--royal); color: #fff; border: none; border-radius:0; font-family: 'Inter', sans-serif; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; letter-spacing: 0.02em; margin-top: 0.5rem; }
+.btn-generate:hover { background: var(--royal-bright); }
+.btn-generate:active { transform: scale(0.99); }
+
+/* QR panel */
+.qr-panel { position: sticky; top: 2rem; }
+
+.qr-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-lg); text-align: center; }
+
+.qr-placeholder { width: 100%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--cream); border-radius:0; border: 2px dashed var(--border); color: var(--ink3); font-size: 0.82rem; gap: 0.8rem; padding: 1rem; }
+.qr-placeholder svg { opacity: 0.3; }
+
+#qr-output { display: none; }
+#qr-output canvas, #qr-output img { border-radius:0; max-width: 100%; }
+
+.qr-meta { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.qr-meta-name { font-family: 'Space Grotesk', serif; font-size: 1.1rem; color: var(--ink); margin-bottom: 0.2rem; }
+.qr-meta-amount { font-size: 1.5rem; font-weight: 700; color: var(--sage); margin-bottom: 0.2rem; }
+.qr-meta-upi { font-size: 0.75rem; color: var(--ink3); }
+
+.qr-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem; }
+.btn-action { padding: 0.55rem; border: 1.5px solid var(--border); border-radius:0; background: var(--cream); font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 500; color: var(--ink2); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 0.35rem; }
+.btn-action:hover { background: var(--royal); color: #fff; border-color: var(--royal); }
+.btn-action.primary { background: var(--sage); color: var(--white); border-color: var(--sage); grid-column: 1 / -1; }
+.btn-action.primary:hover { background: #3fb56a; border-color: #3fb56a; }
+
+.link-box { margin-top: 1.2rem; background: var(--cream2); border: 1px solid var(--border); border-radius:0; padding: 0.75rem 1rem; position: relative; }
+.link-box-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); margin-bottom: 0.4rem; }
+.link-text { font-size: 0.72rem; color: var(--ink2); word-break: break-all; line-height: 1.5; font-family: 'JetBrains Mono', monospace; padding-right: 3rem; }
+.copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.25rem 0.55rem; background: var(--white); border: 1px solid var(--border); border-radius:0; font-size: 0.7rem; color: var(--ink3); cursor: pointer; transition: all 0.15s; }
+.copy-btn:hover { background: var(--royal); color: #fff; border-color: var(--royal); }
+.copy-btn.copied { background: var(--sage); color: var(--white); border-color: var(--sage); }
+
+/* disclaimer */
+.disclaimer {
+  font-size: 0.72rem;
+  color: var(--ink3);
+  line-height: 1.55;
+  border-top: 1px solid var(--border);
+  padding-top: 1.2rem;
+  margin-top: 2rem;
+}
+
+.disclaimer strong { font-weight: 600; color: var(--ink2); }
+
+footer { border-top: 1px solid var(--border); padding: 1.2rem 2rem; text-align: center; font-size: 0.78rem; color: var(--ink3); }
+footer a { color: var(--ink2); text-decoration: none; }
+footer a:hover { color: var(--ink); }
+
+@media (max-width: 680px) {
+  .layout { grid-template-columns: 1fr; }
+  .qr-panel { position: static; }
+  h1 { font-size: 1.8rem; }
+  main { padding: 2rem 1.2rem 3rem; }
+}
+
+/* ══════════ NEVR shared chrome ══════════ */
+.th-nav{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:0 2rem;height:58px;background:rgba(3,5,9,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;}
+.th-brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;flex-shrink:0;}
+.th-brand-mark{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.th-crumb{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--ink3);min-width:0;}
+.th-crumb a{color:inherit;text-decoration:none;transition:color .2s;}
+.th-crumb a:hover{color:var(--royal-bright);}
+.th-crumb .th-sep{color:var(--ink4,var(--ink3));}
+.th-crumb .th-cur{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.th-nav-extra{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.th-about{max-width:1080px;margin:0 auto;padding:4rem 2rem 3.5rem;}
+.th-about-inner{border-top:1px solid var(--line-soft);padding-top:3.5rem;}
+.th-about-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);border:1px solid var(--line);padding:6px 12px;background:rgba(51,85,255,.06);margin-bottom:20px;}
+.th-about h2{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,2.4vw,28px);letter-spacing:-.01em;line-height:1.25;margin-bottom:18px;max-width:34ch;color:var(--ink);}
+.th-about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start;}
+.th-about p{color:var(--ink3);font-size:14px;line-height:1.75;margin-bottom:13px;font-family:var(--f-body);font-weight:300;}
+.th-about p:last-child{margin-bottom:0;}
+.th-about p strong{color:var(--ink);font-weight:600;}
+.th-facts{border:1px solid var(--line);background:var(--panel-2);}
+.th-fact{padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+.th-fact:last-child{border-bottom:none;}
+.th-fact-k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);margin-bottom:6px;}
+.th-fact-v{font-size:13px;color:var(--ink);line-height:1.55;font-family:var(--f-body);}
+
+.th-footer{border-top:1px solid var(--line-soft);padding:24px 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--ink3);}
+.th-footer a{color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px;text-decoration:none;}
+.th-footer a:hover{color:var(--royal-bright);border-color:var(--royal);}
+
+@media (max-width:640px){
+  .th-about{padding:3rem 1.2rem;}
+  .th-about-grid{grid-template-columns:1fr;gap:28px;}
+  .th-nav{padding:0 1.2rem;gap:10px;height:auto;min-height:54px;}
+  .th-footer{padding:18px 1.2rem;flex-direction:column;align-items:flex-start;}
+}
+
+</style>
+</head>
+<body>
+
+<nav class="th-nav">
+  <a href="index.html" class="th-brand"><img src="nevrwhite.png" class="th-brand-mark" alt="NEVR"></a>
+  <div class="th-crumb"><a href="index.html"></a><span class="th-sep">/</span><span class="th-cur">UPI QR Builder</span></div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <div class="tag">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
+      Free · No Upload · Instant
+    </div>
+    <h1>UPI Payment <em>Link & QR</em></h1>
+    <p class="subtitle">Generate scannable QR codes and deep-links for any UPI payment. Works with GPay, PhonePe, Paytm, and all UPI apps.</p>
+  </div>
+
+  <div class="layout">
+    <!-- FORM -->
+    <div class="form-panel">
+      <div class="form-section">
+        <div class="section-label">Receiver Details</div>
+        <div class="field">
+          <label for="upi-id">UPI ID</label>
+          <input type="text" id="upi-id" placeholder="name@upi or 9876543210@ybl" autocomplete="off" spellcheck="false" oninput="validateUPI()">
+          <p class="field-note">e.g. yourname@okicici, 9876543210@paytm</p>
+          <p class="field-err" id="upi-err">Invalid UPI ID format. It must contain a valid @handle (e.g. name@upi)</p>
+        </div>
+        <div class="field">
+          <label for="payee-name">Payee Name (optional)</label>
+          <input type="text" id="payee-name" placeholder="Ratan Tata or My Shop">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">Payment Details</div>
+        <div class="field">
+          <label for="amount">Amount</label>
+          <div class="amount-row">
+            <div class="currency-badge">₹</div>
+            <input type="number" id="amount" placeholder="0.00" min="0" step="0.01" oninput="checkAmount()">
+          </div>
+          <p class="field-note">Leave 0 to let the payer enter the amount.</p>
+          <p class="field-warn" id="amount-warn">⚠ Amounts over ₹1,00,000 may exceed standard P2P UPI daily limits.</p>
+        </div>
+        <div class="field">
+          <label for="remark">Remark / Note (optional)</label>
+          <input type="text" id="remark" placeholder="Invoice #42 or Rent June">
+        </div>
+      </div>
+
+      <!-- Advanced Settings -->
+      <div class="form-section">
+        <div class="adv-toggle" id="adv-toggle" onclick="toggleAdv()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Merchant / Advanced Settings
+        </div>
+        <div class="adv-body" id="adv-body">
+          <div class="field">
+            <label for="mcc">Merchant Category Code (MCC)</label>
+            <input type="text" id="mcc" placeholder="e.g. 5411 (Grocery)" maxlength="4">
+            <p class="field-note">4-digit MCC. UPI apps treat merchant payments differently when present.</p>
+          </div>
+          <div class="field">
+            <label for="tr">Transaction / Order Reference (tr)</label>
+            <input type="text" id="tr" placeholder="e.g. ORD-2025-0042">
+            <p class="field-note">Helps auto-reconcile payments on your end.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">Quick Open In</div>
+        <div class="app-pills" id="app-pills">
+          <button class="app-pill active" data-app="">Any UPI App</button>
+          <button class="app-pill" data-app="gpay">GPay</button>
+          <button class="app-pill" data-app="phonepe">PhonePe</button>
+          <button class="app-pill" data-app="paytm">Paytm</button>
+          <button class="app-pill" data-app="bhim">BHIM</button>
+        </div>
+      </div>
+
+      <button class="btn-generate" onclick="generate()">Generate QR & Link →</button>
+    </div>
+
+    <!-- QR OUTPUT -->
+    <div class="qr-panel">
+      <div class="qr-card">
+        <div class="qr-placeholder" id="qr-placeholder">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="6" y="6" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+            <rect x="28" y="6" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+            <rect x="6" y="28" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+            <rect x="10" y="10" width="6" height="6" fill="currentColor"/>
+            <rect x="32" y="10" width="6" height="6" fill="currentColor"/>
+            <rect x="10" y="32" width="6" height="6" fill="currentColor"/>
+            <rect x="28" y="28" width="4" height="4" fill="currentColor"/>
+            <rect x="36" y="28" width="6" height="6" fill="currentColor"/>
+            <rect x="28" y="36" width="6" height="6" fill="currentColor"/>
+          </svg>
+          <span>Fill the form and click<br><strong>Generate QR & Link</strong></span>
+        </div>
+        <div id="qr-output"></div>
+
+        <div class="qr-meta" id="qr-meta" style="display:none">
+          <div class="qr-meta-name" id="meta-name">—</div>
+          <div class="qr-meta-amount" id="meta-amount">—</div>
+          <div class="qr-meta-upi" id="meta-upi">—</div>
+        </div>
+
+        <div class="qr-actions" id="qr-actions" style="display:none">
+          <button class="btn-action primary" id="open-link-btn" onclick="openLink()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Open in UPI App
+          </button>
+          <button class="btn-action" onclick="downloadQR()">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M3 6.5l3.5 3.5L10 6.5M1 12h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Save QR
+          </button>
+          <button class="btn-action" onclick="shareLink()">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="10" cy="2.5" r="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="3" cy="6.5" r="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.3 7.2l4.4 2.6M8.7 3.2L4.3 5.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Share Link
+          </button>
+        </div>
+
+        <div class="link-box" id="link-box" style="display:none">
+          <div class="link-box-label">UPI Deep Link</div>
+          <div class="link-text" id="link-display">—</div>
+          <button class="copy-btn" id="copy-btn" onclick="copyLink()">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    <strong>Disclaimer:</strong> Always verify the generated QR code, UPI ID, and payment details before completing any transaction. NEVR and its creator assume no liability for lost funds, errors, or financial discrepancies arising from the use of this tool. This tool does not store, transmit, or share any data you enter.
+  </div>
+</main>
+
+<section class="th-about">
+  <div class="th-about-inner">
+    <span class="th-about-eyebrow">✦ About This Tool</span>
+    <div class="th-about-grid">
+      <div>
+        <h2>Why we built the UPI QR Builder</h2>
+        <p>Every shopkeeper, freelancer, and event organiser in India eventually needs a fast way to collect a UPI payment without printing a static sticker or digging through a banking app for their VPA's QR. This tool builds one on demand — with an exact amount, a payee name, a payment note, and even a reference ID baked in, so the money that comes in is easy to reconcile later.</p>
+        <p>Under the hood it's just the standard <strong>UPI deep-link spec</strong> (<code>upi://pay?pa=…</code>) that every UPI app already understands — GPay, PhonePe, Paytm, BHIM, and most bank apps read the exact same format. The QR itself is rendered locally in your browser using a small JavaScript library, and the "Open in app" button builds the matching app-specific deep link.</p>
+      </div>
+      <div class="th-facts">
+        <div class="th-fact"><div class="th-fact-k">Privacy</div><div class="th-fact-v">100% client-side. Your UPI ID, name, and amount never leave this browser tab.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Compatibility</div><div class="th-fact-v">Standard UPI deep-link — scans and opens correctly in every major UPI app.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Cost</div><div class="th-fact-v">Free, unlimited use. No account, no watermark, no expiry on the QR.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="th-footer">
+  <span>Made with ❤️ by <a href="https://www.teenywriter.dpdns.org">Teenywriter</a> &nbsp;·&nbsp; Designed by <a href="https://www.pixelshade.in">PixelShade Design Studios</a></span>
+  <a href="index.html">← Back to NEVR</a>
+</footer>
+
+<script>
+let currentUPILink = '';
+let selectedApp = '';
+
+const UPI_REGEX = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+
+/* App pill selection */
+document.getElementById('app-pills').addEventListener('click', e => {
+  const pill = e.target.closest('.app-pill');
+  if (!pill) return;
+  document.querySelectorAll('.app-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  selectedApp = pill.dataset.app;
+});
+
+/* Validation */
+function validateUPI() {
+  const val = document.getElementById('upi-id').value.trim();
+  const err = document.getElementById('upi-err');
+  const inp = document.getElementById('upi-id');
+  if (val && !UPI_REGEX.test(val)) {
+    err.classList.add('show');
+    inp.classList.add('error');
+  } else {
+    err.classList.remove('show');
+    inp.classList.remove('error');
+  }
+}
+
+function checkAmount() {
+  const val = parseFloat(document.getElementById('amount').value);
+  const warn = document.getElementById('amount-warn');
+  warn.classList.toggle('show', val > 100000);
+}
+
+/* Advanced settings toggle */
+function toggleAdv() {
+  const toggle = document.getElementById('adv-toggle');
+  const body = document.getElementById('adv-body');
+  toggle.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function buildUPILink(upiId, name, amount, remark, mcc, tr) {
+  let url = `upi://pay?pa=${encodeURIComponent(upiId)}`;
+  if (name)   url += `&pn=${encodeURIComponent(name)}`;
+  if (amount && parseFloat(amount) > 0) url += `&am=${parseFloat(amount).toFixed(2)}`;
+  url += `&cu=INR`;
+  if (remark) url += `&tn=${encodeURIComponent(remark)}`;
+  if (mcc)    url += `&mc=${encodeURIComponent(mcc)}`;
+  if (tr)     url += `&tr=${encodeURIComponent(tr)}`;
+  return url;
+}
+
+function buildAppLink(upiLink) {
+  const params = upiLink.split('?')[1];
+  const appMap = {
+    gpay: `gpay://upi/pay?${params}`,
+    phonepe: `phonepe://pay?${params}`,
+    paytm: `paytmmp://pay?${params}`,
+    bhim: `bhim://pay?${params}`,
+  };
+  return selectedApp && appMap[selectedApp] ? appMap[selectedApp] : upiLink;
+}
+
+function generate() {
+  const upiId = document.getElementById('upi-id').value.trim();
+  const name  = document.getElementById('payee-name').value.trim();
+  const amt   = document.getElementById('amount').value.trim();
+  const rem   = document.getElementById('remark').value.trim();
+  const mcc   = document.getElementById('mcc').value.trim();
+  const tr    = document.getElementById('tr').value.trim();
+
+  // Validate UPI ID
+  if (!upiId) {
+    document.getElementById('upi-id').focus();
+    document.getElementById('upi-id').classList.add('error');
+    return;
+  }
+  if (!UPI_REGEX.test(upiId)) {
+    document.getElementById('upi-err').classList.add('show');
+    document.getElementById('upi-id').classList.add('error');
+    document.getElementById('upi-id').focus();
+    return;
+  }
+
+  currentUPILink = buildUPILink(upiId, name, amt, rem, mcc, tr);
+
+  // Generate QR (Medium correction = larger, easier-to-scan blocks)
+  document.getElementById('qr-placeholder').style.display = 'none';
+  const out = document.getElementById('qr-output');
+  out.innerHTML = '';
+  out.style.display = 'block';
+
+  new QRCode(out, {
+    text: currentUPILink,
+    width: 240,
+    height: 240,
+    colorDark: '#edeff7',
+    colorLight: '#090c14',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  // Meta
+  document.getElementById('meta-name').textContent = name || upiId;
+  document.getElementById('meta-amount').textContent = (amt && parseFloat(amt) > 0)
+    ? `₹ ${parseFloat(amt).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+    : 'Any Amount';
+  document.getElementById('meta-upi').textContent = upiId;
+  document.getElementById('qr-meta').style.display = 'block';
+
+  // Link
+  document.getElementById('link-display').textContent = currentUPILink;
+  document.getElementById('link-box').style.display = 'block';
+
+  // Open button label
+  const openBtn = document.getElementById('open-link-btn');
+  const appLabel = selectedApp ? selectedApp.charAt(0).toUpperCase() + selectedApp.slice(1) : 'UPI App';
+  openBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Open in ${appLabel}`;
+
+  document.getElementById('qr-actions').style.display = 'grid';
+}
+
+function openLink() { window.location.href = buildAppLink(currentUPILink); }
+
+function downloadQR() {
+  // Prefer <img> src (qrcode.js renders canvas then overlays img)
+  const img = document.querySelector('#qr-output img');
+  const canvas = document.querySelector('#qr-output canvas');
+  const link = document.createElement('a');
+  link.download = 'upi-qr.png';
+  if (img && img.src) {
+    link.href = img.src;
+  } else if (canvas) {
+    link.href = canvas.toDataURL('image/png');
+  } else return;
+  link.click();
+}
+
+function shareLink() {
+  if (navigator.share) navigator.share({ title: 'UPI Payment', url: currentUPILink });
+  else copyLink();
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(currentUPILink).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp Command Center — NEVR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#030509;--cream2:#0c1120;--cream3:#0c1120;
+  --ink:#edeff7;--ink2:#aab0cc;--ink3:#7c84a0;--ink4:#4b5170;
+  --border:#1b2440;--border2:#12172a;
+  --white:#090c14;
+  --wa:#25d366;--wa-d:#1fae56;--wa-l:rgba(37,211,102,.10);
+  --red:#ff5c5c;--red-l:rgba(255,92,92,.10);
+  --amber:#f2b84b;--amber-l:rgba(242,184,75,.10);
+  --sage:#52d17c;--sage-l:rgba(82,209,124,.10);
+  --radius:0;
+  --shadow:none;
+  --shadow-lg:none;
+  --mono:'JetBrains Mono',monospace;
+
+  --void:#030509;--panel:#090c14;--panel-2:#0c1120;
+  --line:#1b2440;--line-soft:#12172a;
+  --royal:#3355ff;--royal-bright:#6e85ff;--royal-dim:#1a2a80;
+  --f-display:'Space Grotesk',sans-serif;--f-body:'Inter',sans-serif;--f-mono:'JetBrains Mono',monospace;
+}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+nav{padding:.875rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+nav a{color:var(--ink3);text-decoration:none;font-size:.82rem;transition:color .2s;}
+nav a:hover{color:var(--ink);}
+.nav-sep{color:var(--border);}
+.nav-cur{color:var(--ink);font-weight:500;}
+main{flex:1;max-width:1060px;margin:0 auto;padding:2.5rem 2rem 3rem;width:100%;}
+.page-header{margin-bottom:2rem;}
+.tag{display:inline-flex;align-items:center;gap:.4rem;background:var(--wa-l);color:var(--wa-d);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .65rem;border-radius:0;margin-bottom:.8rem;}
+h1{font-family:'Space Grotesk',serif;font-size:2.2rem;font-weight:400;line-height:1.15;margin-bottom:.4rem;}
+h1 em{font-style:italic;color:var(--wa-d);}
+.subtitle{color:var(--ink3);font-size:.9rem;font-weight:300;line-height:1.6;max-width:560px;}
+
+/* MODE TABS */
+.mode-tabs{display:flex;gap:0;margin-bottom:2rem;background:var(--cream2);border:1px solid var(--border);border-radius:var(--radius);padding:.3rem;width:fit-content;}
+.mode-tab{padding:.5rem 1.25rem;border-radius:0;font-size:.85rem;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;border:none;background:transparent;font-family:'Inter',sans-serif;}
+.mode-tab.active{background:var(--white);color:var(--ink);box-shadow:var(--shadow);}
+
+/* ── SINGLE MODE ── */
+.single-layout{display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start;}
+.form-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);}
+.fc-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink4);margin-bottom:1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);}
+.field{margin-bottom:1rem;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:.78rem;font-weight:500;color:var(--ink2);margin-bottom:.3rem;}
+.phone-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:0;overflow:hidden;background:var(--cream);transition:border-color .2s;}
+.phone-wrap:focus-within{border-color:var(--wa);}
+.cc-flag{padding:.55rem .75rem;background:var(--cream2);font-size:.85rem;border-right:1px solid var(--border);white-space:nowrap;display:flex;align-items:center;gap:.3rem;}
+.cc-flag select{background:transparent;border:none;outline:none;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--ink2);cursor:pointer;appearance:none;}
+.phone-input{flex:1;padding:.55rem .75rem;border:none;background:transparent;font-family:var(--mono);font-size:.92rem;color:var(--ink);outline:none;}
+.phone-cleaned{font-size:.68rem;color:var(--ink4);margin-top:.3rem;font-family:var(--mono);}
+.phone-cleaned strong{color:var(--wa-d);}
+
+/* Quick pills */
+.quick-pills{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.4rem;}
+.qpill{padding:.25rem .65rem;border:1.5px solid var(--border);border-radius:0;font-size:.73rem;cursor:pointer;color:var(--ink2);background:var(--cream2);transition:all .15s;}
+.qpill:hover{background:var(--wa-l);border-color:var(--wa);color:var(--wa-d);}
+
+/* Message area */
+.msg-wrap{border:1.5px solid var(--border);border-radius:0;overflow:hidden;background:var(--cream);transition:border-color .2s;}
+.msg-wrap:focus-within{border-color:var(--wa);}
+.msg-toolbar{padding:.4rem .6rem;border-bottom:1px solid var(--border);display:flex;gap:.3rem;background:var(--cream2);}
+.fmt-btn{width:28px;height:24px;border:1px solid var(--border);border-radius:0;background:var(--white);font-family:var(--mono);font-size:.75rem;cursor:pointer;color:var(--ink2);transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.fmt-btn:hover{background:var(--wa-l);border-color:var(--wa);color:var(--wa-d);}
+.msg-wrap textarea{width:100%;min-height:120px;padding:.7rem .8rem;border:none;background:transparent;font-family:'Inter',sans-serif;font-size:.9rem;color:var(--ink);outline:none;resize:vertical;}
+
+/* WA send button */
+.send-btn{width:100%;padding:.8rem;background:var(--wa);color:var(--white);border:none;border-radius:0;font-family:'Inter',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .15s;margin-top:.75rem;display:flex;align-items:center;justify-content:center;gap:.5rem;}
+.send-btn:hover{background:var(--wa-d);}
+.send-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* QR PANEL */
+.qr-panel-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);text-align:center;}
+.qr-area{border:2px dashed var(--border);border-radius:0;padding:1rem;margin-bottom:.9rem;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;}
+.qr-area.has-qr{border-style:solid;border-color:var(--border);}
+#qr-output canvas,#qr-output img{border-radius:0;}
+.qr-placeholder-txt{font-size:.78rem;color:var(--ink4);text-align:center;}
+.qr-generate-btn{width:100%;padding:.6rem;background:var(--wa-l);color:var(--wa-d);border:1.5px solid var(--wa);border-radius:0;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:.75rem;}
+.qr-generate-btn:hover{background:var(--wa);color:var(--white);}
+
+/* Ghost ledger */
+.ledger-title{font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink4);margin-bottom:.5rem;text-align:left;}
+.ledger-list{display:flex;flex-direction:column;gap:.3rem;}
+.ledger-item{display:flex;align-items:center;justify-content:space-between;padding:.3rem .5rem;border-radius:0;background:var(--cream);font-size:.72rem;cursor:pointer;transition:background .15s;}
+.ledger-item:hover{background:var(--wa-l);}
+.li-num{font-family:var(--mono);color:var(--ink2);}
+.li-use{color:var(--wa-d);font-weight:600;font-size:.68rem;}
+
+/* ── BULK MODE ── */
+.bulk-layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;}
+.bulk-left,.bulk-right{display:flex;flex-direction:column;gap:1rem;}
+.paste-zone textarea{width:100%;min-height:150px;padding:.7rem .8rem;border:1.5px solid var(--border);border-radius:0;background:var(--cream);font-family:var(--mono);font-size:.78rem;color:var(--ink);outline:none;resize:vertical;transition:border-color .2s;}
+.paste-zone textarea:focus{border-color:var(--wa);}
+.template-wrap{display:flex;gap:.4rem;align-items:center;}
+.template-wrap input{flex:1;padding:.55rem .75rem;border:1.5px solid var(--border);border-radius:0;background:var(--cream);font-family:'Inter',sans-serif;font-size:.85rem;color:var(--ink);outline:none;transition:border-color .2s;}
+.template-wrap input:focus{border-color:var(--wa);}
+.var-chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.4rem;}
+.var-chip{padding:.2rem .55rem;border:1px solid var(--border);border-radius:0;font-size:.68rem;font-family:var(--mono);cursor:pointer;color:var(--wa-d);background:var(--wa-l);transition:all .15s;}
+.var-chip:hover{background:var(--wa);color:var(--white);}
+
+/* Queue */
+.queue-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);}
+.queue-list{display:flex;flex-direction:column;gap:.5rem;max-height:400px;overflow-y:auto;}
+.queue-list::-webkit-scrollbar{width:4px;}
+.queue-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:0;}
+.q-row{display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:center;padding:.6rem .75rem;border-radius:0;border:1px solid var(--border);background:var(--cream);transition:background .15s;}
+.q-row.sent{background:var(--wa-l);border-color:var(--wa);}
+.q-row.cooling{background:var(--amber-l);border-color:var(--amber);}
+.q-info{}
+.q-num{font-family:var(--mono);font-size:.72rem;color:var(--ink2);font-weight:500;}
+.q-msg-preview{font-size:.72rem;color:var(--ink3);margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;}
+.q-send-btn{padding:.3rem .8rem;border-radius:0;border:1.5px solid var(--wa);background:var(--wa-l);color:var(--wa-d);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.q-send-btn:hover{background:var(--wa);color:var(--white);}
+.q-send-btn:disabled{opacity:.5;cursor:not-allowed;}
+.q-send-btn.sent{background:var(--sage-l);border-color:var(--sage);color:var(--sage);cursor:default;}
+.q-cool-ring{width:28px;height:28px;border-radius:50%;border:2px solid var(--amber);border-top-color:transparent;animation:spin 1s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cooldown-num{font-family:var(--mono);font-size:.72rem;color:var(--amber);font-weight:700;min-width:28px;text-align:center;}
+
+.parse-btn{padding:.55rem 1rem;background:var(--royal);color:#fff;border:none;border-radius:0;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:.35rem;}
+.parse-btn:hover{background:var(--royal-bright);}
+
+.disclaimer{font-size:.72rem;color:var(--ink3);line-height:1.55;border-top:1px solid var(--border);padding-top:1.2rem;margin-top:1.5rem;}
+.disclaimer strong{color:var(--ink2);}
+footer{border-top:1px solid var(--border);padding:1.2rem 2rem;text-align:center;font-size:.78rem;color:var(--ink3);}
+footer a{color:var(--ink2);text-decoration:none;}
+footer a:hover{color:var(--ink);}
+@media(max-width:720px){.single-layout,.bulk-layout{grid-template-columns:1fr;}}
+
+/* ══════════ NEVR shared chrome ══════════ */
+.th-nav{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:0 2rem;height:58px;background:rgba(3,5,9,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;}
+.th-brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;flex-shrink:0;}
+.th-brand-mark{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.th-crumb{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--ink3);min-width:0;}
+.th-crumb a{color:inherit;text-decoration:none;transition:color .2s;}
+.th-crumb a:hover{color:var(--royal-bright);}
+.th-crumb .th-sep{color:var(--ink4,var(--ink3));}
+.th-crumb .th-cur{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.th-nav-extra{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.th-about{max-width:1080px;margin:0 auto;padding:4rem 2rem 3.5rem;}
+.th-about-inner{border-top:1px solid var(--line-soft);padding-top:3.5rem;}
+.th-about-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);border:1px solid var(--line);padding:6px 12px;background:rgba(51,85,255,.06);margin-bottom:20px;}
+.th-about h2{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,2.4vw,28px);letter-spacing:-.01em;line-height:1.25;margin-bottom:18px;max-width:34ch;color:var(--ink);}
+.th-about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start;}
+.th-about p{color:var(--ink3);font-size:14px;line-height:1.75;margin-bottom:13px;font-family:var(--f-body);font-weight:300;}
+.th-about p:last-child{margin-bottom:0;}
+.th-about p strong{color:var(--ink);font-weight:600;}
+.th-facts{border:1px solid var(--line);background:var(--panel-2);}
+.th-fact{padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+.th-fact:last-child{border-bottom:none;}
+.th-fact-k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);margin-bottom:6px;}
+.th-fact-v{font-size:13px;color:var(--ink);line-height:1.55;font-family:var(--f-body);}
+
+.th-footer{border-top:1px solid var(--line-soft);padding:24px 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--ink3);}
+.th-footer a{color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px;text-decoration:none;}
+.th-footer a:hover{color:var(--royal-bright);border-color:var(--royal);}
+
+@media (max-width:640px){
+  .th-about{padding:3rem 1.2rem;}
+  .th-about-grid{grid-template-columns:1fr;gap:28px;}
+  .th-nav{padding:0 1.2rem;gap:10px;height:auto;min-height:54px;}
+  .th-footer{padding:18px 1.2rem;flex-direction:column;align-items:flex-start;}
+}
+
+</style>
+</head>
+<body>
+<nav class="th-nav">
+  <a href="index.html" class="th-brand"><img src="nevrwhite.png" class="th-brand-mark" alt="NEVR"></a>
+  <div class="th-crumb"><a href="index.html"></a><span class="th-sep">/</span><span class="th-cur">WhatsApp Command Center</span></div>
+</nav>
+<main>
+  <div class="page-header">
+    <div class="tag">💬 No Contact Needed · Anti-Spam</div>
+    <h1>WhatsApp <em>Command Center</em></h1>
+    <p class="subtitle">Message anyone without saving their number. Bulk-dispatch with an anti-ban queue. 100% browser — no third-party servers.</p>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="setMode('single',this)">Single Message</button>
+    <button class="mode-tab" onclick="setMode('bulk',this)">Bulk Dispatch</button>
+  </div>
+
+  <!-- SINGLE MODE -->
+  <div id="mode-single">
+    <div class="single-layout">
+      <div>
+        <div class="form-card">
+          <div class="fc-title">Recipient</div>
+          <div class="field">
+            <label>Phone Number</label>
+            <div class="phone-wrap">
+              <div class="cc-flag">
+                <select id="cc-select" onchange="updateClean()">
+                  <option value="91">🇮🇳 +91</option>
+                  <option value="1">🇺🇸 +1</option>
+                  <option value="44">🇬🇧 +44</option>
+                  <option value="971">🇦🇪 +971</option>
+                  <option value="65">🇸🇬 +65</option>
+                  <option value="61">🇦🇺 +61</option>
+                  <option value="60">🇲🇾 +60</option>
+                  <option value="49">🇩🇪 +49</option>
+                  <option value="33">🇫🇷 +33</option>
+                </select>
+              </div>
+              <input class="phone-input" type="tel" id="phone-input" placeholder="98765 43210" oninput="updateClean()">
+            </div>
+            <div class="phone-cleaned" id="phone-cleaned">Enter a number above</div>
+          </div>
+
+          <div class="fc-title" style="margin-top:1.1rem">Message</div>
+          <div class="field">
+            <label>Quick-insert phrases</label>
+            <div class="quick-pills">
+              <span class="qpill" onclick="insertPhrase('📍 Sending location pin...')">📍 Location pin</span>
+              <span class="qpill" onclick="insertPhrase('📄 Please print the attached document.')">📄 Print document</span>
+              <span class="qpill" onclick="insertPhrase('📦 Please leave at the gate.')">📦 Leave at gate</span>
+              <span class="qpill" onclick="insertPhrase('🕐 Running 10 minutes late.')">🕐 Running late</span>
+              <span class="qpill" onclick="insertPhrase('✅ Confirmed. Will be there.')">✅ Confirmed</span>
+              <span class="qpill" onclick="insertPhrase('💳 Payment received. Thank you.')">💳 Payment done</span>
+            </div>
+          </div>
+          <div class="field">
+            <div class="msg-wrap">
+              <div class="msg-toolbar">
+                <button class="fmt-btn" title="Bold" onclick="wrapText('*')"><strong>B</strong></button>
+                <button class="fmt-btn" title="Italic" onclick="wrapText('_')"><em>I</em></button>
+                <button class="fmt-btn" title="Strikethrough" onclick="wrapText('~')"><s>S</s></button>
+                <button class="fmt-btn" title="Monospace" onclick="wrapText('```')"><span style="font-family:monospace;font-size:.65rem">{ }</span></button>
+              </div>
+              <textarea id="msg-input" placeholder="Type your message here…&#10;Use *bold*, _italic_, ~strikethrough~" oninput="updateClean()"></textarea>
+            </div>
+          </div>
+          <button class="send-btn" id="send-btn" onclick="openChat()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8l11-5-5 11-1.5-5.5L2 8z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            Open WhatsApp Chat
+          </button>
+        </div>
+      </div>
+
+      <!-- QR & LEDGER -->
+      <div>
+        <div class="qr-panel-card" style="margin-bottom:1rem">
+          <div class="fc-title">In-Person QR Code</div>
+          <div class="qr-area" id="qr-area">
+            <div class="qr-placeholder-txt">Generate a QR for someone nearby to scan and open the chat directly on their phone.</div>
+          </div>
+          <div id="qr-output" style="display:none;text-align:center;margin-bottom:.75rem"></div>
+          <button class="qr-generate-btn" onclick="generateQR()">Generate WhatsApp QR</button>
+        </div>
+        <div class="qr-panel-card">
+          <div class="ledger-title">Recent Numbers (Ghost Ledger)</div>
+          <div class="ledger-list" id="ledger-list">
+            <div style="font-size:.72rem;color:var(--ink4);text-align:center;padding:.5rem">No recent numbers yet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK MODE -->
+  <div id="mode-bulk" style="display:none">
+    <div class="bulk-layout">
+      <div class="bulk-left">
+        <div class="form-card">
+          <div class="fc-title">Paste Data (from Excel / Sheets)</div>
+          <div class="paste-zone">
+            <textarea id="bulk-data" placeholder="Paste rows from Excel here — each column auto-detected.&#10;&#10;Example:&#10;9876543210	Ravi	₹2,500&#10;9123456789	Priya	₹1,800&#10;9000011111	Karan	₹4,200"></textarea>
+          </div>
+          <div style="font-size:.7rem;color:var(--ink4);margin-top:.4rem">Tab, comma, or pipe delimiters auto-detected. Column 1 = phone number.</div>
+        </div>
+        <div class="form-card">
+          <div class="fc-title">Message Template</div>
+          <div class="field">
+            <label>Draft master message using column variables</label>
+            <div class="template-wrap">
+              <input type="text" id="bulk-template" placeholder="Hi {Col2}, your balance of {Col3} is due. Please pay by Friday.">
+            </div>
+            <div class="var-chips" id="var-chips">
+              <span class="var-chip" onclick="insertVar('{Col1}')">Col1 (Phone)</span>
+              <span class="var-chip" onclick="insertVar('{Col2}')">Col2</span>
+              <span class="var-chip" onclick="insertVar('{Col3}')">Col3</span>
+              <span class="var-chip" onclick="insertVar('{Col4}')">Col4</span>
+            </div>
+          </div>
+          <button class="parse-btn" onclick="parseBulk()">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M7 3l3.5 3.5L7 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Build Dispatch Queue
+          </button>
+        </div>
+      </div>
+      <div class="bulk-right">
+        <div class="queue-card">
+          <div class="fc-title" style="margin-bottom:.75rem">Anti-Ban Dispatch Queue</div>
+          <div class="queue-list" id="queue-list">
+            <div style="font-size:.78rem;color:var(--ink4);text-align:center;padding:2rem">Paste data and build queue →</div>
+          </div>
+        </div>
+        <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:0;padding:.75rem 1rem;font-size:.72rem;color:var(--amber);line-height:1.5;">
+          <strong>Anti-Ban Protection:</strong> After each "Send", a 3-second cooldown prevents the next send. This mimics natural human pacing and significantly reduces the risk of WhatsApp flagging your number.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Disclaimer:</strong> This tool opens WhatsApp Web / App via official deep-links (wa.me). It does not bypass any platform restrictions. Bulk messaging for promotional purposes may still violate WhatsApp's Terms of Service — use responsibly for legitimate business communication only.
+  </div>
+</main>
+
+<section class="th-about">
+  <div class="th-about-inner">
+    <span class="th-about-eyebrow">✦ About This Tool</span>
+    <div class="th-about-grid">
+      <div>
+        <h2>Why we built the WhatsApp Command Center</h2>
+        <p>Messaging someone on WhatsApp usually means saving their number as a contact first — awkward for a one-off delivery update, a customer enquiry, or a bulk outreach list you'll never message again. This tool builds the official <strong>wa.me deep-link</strong> for any number and pre-filled message, so you can open a chat instantly without adding a single contact.</p>
+        <p>For businesses juggling a list of numbers, the bulk mode queues messages one at a time with deliberate spacing between sends — an <strong>anti-ban pacing</strong> that mirrors how a human would actually send messages, rather than firing them all at once. Every link opens through WhatsApp's own official interface; nothing here bypasses WhatsApp or automates sending without you clicking each one.</p>
+      </div>
+      <div class="th-facts">
+        <div class="th-fact"><div class="th-fact-k">Privacy</div><div class="th-fact-v">Numbers and messages stay in your browser — nothing is sent to a third-party server.</div></div>
+        <div class="th-fact"><div class="th-fact-k">How it works</div><div class="th-fact-v">Builds official wa.me deep-links; you still click to send each one via WhatsApp itself.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Use responsibly</div><div class="th-fact-v">Bulk outreach for promotions may still fall under WhatsApp's Terms of Service — check before sending.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="th-footer">
+  <span>Made with ❤️ by <a href="https://www.teenywriter.dpdns.org">Teenywriter</a> &nbsp;·&nbsp; Designed by <a href="https://www.pixelshade.in">PixelShade Design Studios</a></span>
+  <a href="index.html">← Back to NEVR</a>
+</footer>
+
+<script>
+/* ══ MODE ══ */
+function setMode(m, btn) {
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('mode-single').style.display = m==='single' ? '' : 'none';
+  document.getElementById('mode-bulk').style.display   = m==='bulk'   ? '' : 'none';
+}
+
+/* ══ PHONE CLEANING ══ */
+function cleanPhone(raw) {
+  return raw.replace(/[\s\-().+]/g,'').replace(/\D/g,'');
+}
+function updateClean() {
+  const cc  = document.getElementById('cc-select').value;
+  const raw = document.getElementById('phone-input').value;
+  const cleaned = cleanPhone(raw);
+  const el = document.getElementById('phone-cleaned');
+  if (!cleaned) { el.innerHTML='Enter a number above'; return; }
+  // Auto-prefix country code if not already present
+  let full = cleaned;
+  if (!full.startsWith(cc)) full = cc + full;
+  el.innerHTML = `Will send to: <strong>+${full}</strong>`;
+  el.dataset.full = full;
+}
+
+/* ══ FORMAT HELPERS ══ */
+function wrapText(marker) {
+  const ta = document.getElementById('msg-input');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const sel = ta.value.slice(start, end);
+  const replacement = sel ? marker+sel+marker : marker+marker;
+  ta.setRangeText(replacement, start, end, 'select');
+  ta.focus();
+}
+
+function insertPhrase(text) {
+  const ta = document.getElementById('msg-input');
+  const pos = ta.selectionStart;
+  const before = ta.value.slice(0, pos);
+  const after  = ta.value.slice(pos);
+  ta.value = before + (before && !before.endsWith('\n') ? '\n' : '') + text + after;
+  ta.focus();
+}
+
+/* ══ OPEN CHAT ══ */
+function openChat() {
+  const ccEl   = document.getElementById('phone-cleaned');
+  const full   = ccEl.dataset.full || (document.getElementById('cc-select').value + cleanPhone(document.getElementById('phone-input').value));
+  const msg    = document.getElementById('msg-input').value.trim();
+  if (!full || full.length < 7) { document.getElementById('phone-input').focus(); return; }
+
+  // Save to ghost ledger
+  saveLedger(full);
+
+  const url = `https://wa.me/${full}${msg ? '?text=' + encodeURIComponent(msg) : ''}`;
+  window.open(url, '_blank');
+}
+
+/* ══ GHOST LEDGER ══ */
+function saveLedger(number) {
+  let list = JSON.parse(localStorage.getItem('wa_ledger')||'[]');
+  list = [number, ...list.filter(n=>n!==number)].slice(0,5);
+  localStorage.setItem('wa_ledger', JSON.stringify(list));
+  renderLedger();
+}
+function renderLedger() {
+  const list = JSON.parse(localStorage.getItem('wa_ledger')||'[]');
+  const el = document.getElementById('ledger-list');
+  if (!list.length) { el.innerHTML='<div style="font-size:.72rem;color:var(--ink4);text-align:center;padding:.5rem">No recent numbers yet.</div>'; return; }
+  el.innerHTML = list.map(num =>
+    `<div class="ledger-item" onclick="reuseNumber('${num}')">
+      <span class="li-num">+${num}</span>
+      <span class="li-use">Re-use →</span>
+    </div>`
+  ).join('');
+}
+function reuseNumber(num) {
+  // Strip country code from display — put number in field
+  const cc = document.getElementById('cc-select').value;
+  const digits = num.startsWith(cc) ? num.slice(cc.length) : num;
+  document.getElementById('phone-input').value = digits;
+  updateClean();
+}
+
+/* ══ QR ══ */
+function generateQR() {
+  const ccEl = document.getElementById('phone-cleaned');
+  const full = ccEl.dataset.full || (document.getElementById('cc-select').value + cleanPhone(document.getElementById('phone-input').value));
+  const msg  = document.getElementById('msg-input').value.trim();
+  if (!full || full.length < 7) { alert('Enter a phone number first.'); return; }
+  const url = `https://wa.me/${full}${msg ? '?text=' + encodeURIComponent(msg) : ''}`;
+  const out = document.getElementById('qr-output');
+  const area = document.getElementById('qr-area');
+  out.innerHTML = '';
+  new QRCode(out, { text:url, width:180, height:180, colorDark:'#edeff7', colorLight:'#090c14', correctLevel:QRCode.CorrectLevel.M });
+  area.style.display = 'none';
+  out.style.display = 'block';
+}
+
+/* ══ BULK ══ */
+let queueData = [];
+let cooldownActive = false;
+
+function insertVar(v) {
+  const inp = document.getElementById('bulk-template');
+  const pos = inp.selectionStart;
+  inp.setRangeText(v, pos, pos, 'end');
+  inp.focus();
+}
+
+function parseBulk() {
+  const raw = document.getElementById('bulk-data').value.trim();
+  if (!raw) return;
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  queueData = lines.map((line, idx) => {
+    let cols;
+    if (line.includes('\t'))     cols = line.split('\t');
+    else if (line.includes('|')) cols = line.split('|');
+    else                         cols = line.split(',');
+    cols = cols.map(c=>c.trim());
+    const phone = cleanPhone(cols[0]);
+    const template = document.getElementById('bulk-template').value;
+    const msg = template.replace(/\{Col(\d+)\}/gi, (_,n) => cols[parseInt(n)-1] || '');
+    return { phone, cols, msg, status:'pending', idx };
+  }).filter(r => r.phone.length >= 7);
+
+  renderQueue();
+}
+
+function renderQueue() {
+  const el = document.getElementById('queue-list');
+  if (!queueData.length) { el.innerHTML='<div style="font-size:.78rem;color:var(--ink4);text-align:center;padding:2rem">Paste data and build queue →</div>'; return; }
+  el.innerHTML = queueData.map((row, i) => {
+    const fullNum = row.phone.startsWith('91') ? row.phone : '91'+row.phone;
+    let btnHtml;
+    if (row.status === 'sent') {
+      btnHtml = `<button class="q-send-btn sent" disabled>✓ Sent</button>`;
+    } else if (row.status === 'cooling') {
+      btnHtml = `<span class="cooldown-num" id="cool-${i}">3</span><div class="q-cool-ring"></div>`;
+    } else {
+      btnHtml = `<button class="q-send-btn" onclick="sendRow(${i})" ${cooldownActive && row.status==='pending' ? 'disabled' : ''}>Send →</button>`;
+    }
+    return `<div class="q-row ${row.status}" id="qrow-${i}">
+      <div class="q-info">
+        <div class="q-num">+${fullNum}</div>
+        <div class="q-msg-preview">${esc(row.msg.slice(0,60))}${row.msg.length>60?'…':''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.4rem">${btnHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function sendRow(i) {
+  const row = queueData[i];
+  if (!row || row.status !== 'pending') return;
+  const full = row.phone.startsWith('91') ? row.phone : '91'+row.phone;
+  const url = `https://wa.me/${full}${row.msg ? '?text='+encodeURIComponent(row.msg) : ''}`;
+  window.open(url, '_blank');
+  row.status = 'sent';
+  cooldownActive = true;
+  renderQueue();
+  // Start 3s cooldown on next pending row
+  const nextIdx = queueData.findIndex((r,idx) => idx > i && r.status === 'pending');
+  if (nextIdx >= 0) {
+    queueData[nextIdx].status = 'cooling';
+    renderQueue();
+    let count = 3;
+    const interval = setInterval(() => {
+      count--;
+      const el = document.getElementById(`cool-${nextIdx}`);
+      if (el) el.textContent = count;
+      if (count <= 0) {
+        clearInterval(interval);
+        queueData[nextIdx].status = 'pending';
+        cooldownActive = false;
+        renderQueue();
+      }
+    }, 1000);
+  } else {
+    cooldownActive = false;
+  }
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* Init */
+renderLedger();
+</script>
+</body>
+</html>

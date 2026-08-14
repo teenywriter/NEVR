@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Privacy Scrubber — NEVR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#030509;--cream2:#0c1120;--cream3:#0c1120;
+  --ink:#edeff7;--ink2:#aab0cc;--ink3:#7c84a0;--ink4:#4b5170;
+  --border:#1b2440;--border2:#12172a;
+  --white:#090c14;
+  --red:#ff5c5c;--red-l:rgba(255,92,92,.10);--red-d:#cc3a3a;
+  --sage:#52d17c;--sage-l:rgba(82,209,124,.10);
+  --amber:#f2b84b;--amber-l:rgba(242,184,75,.10);
+  --radius:0;
+  --shadow:none;
+  --shadow-lg:none;
+  --mono:'JetBrains Mono',monospace;
+
+  --void:#030509;--panel:#090c14;--panel-2:#0c1120;
+  --line:#1b2440;--line-soft:#12172a;
+  --royal:#3355ff;--royal-bright:#6e85ff;--royal-dim:#1a2a80;
+  --f-display:'Space Grotesk',sans-serif;--f-body:'Inter',sans-serif;--f-mono:'JetBrains Mono',monospace;
+}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+nav{padding:.875rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+nav a{color:var(--ink3);text-decoration:none;font-size:.82rem;transition:color .2s;}
+nav a:hover{color:var(--ink);}
+.nav-sep{color:var(--border);}
+.nav-cur{color:var(--ink);font-weight:500;}
+main{flex:1;max-width:900px;margin:0 auto;padding:2.5rem 2rem 3rem;width:100%;}
+.page-header{margin-bottom:2rem;}
+.tag{display:inline-flex;align-items:center;gap:.4rem;background:var(--red-l);color:var(--red);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .65rem;border-radius:0;margin-bottom:.8rem;}
+h1{font-family:'Space Grotesk',serif;font-size:2.2rem;font-weight:400;line-height:1.15;margin-bottom:.4rem;}
+h1 em{font-style:italic;color:var(--red);}
+.subtitle{color:var(--ink3);font-size:.9rem;font-weight:300;line-height:1.6;max-width:540px;}
+
+/* DROP ZONE */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:4rem 2rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--white);position:relative;margin-bottom:1.5rem;}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--red);background:var(--red-l);}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.dz-icon{margin-bottom:1rem;opacity:.3;}
+.dz-text{font-size:1.1rem;font-weight:500;color:var(--ink2);margin-bottom:.3rem;}
+.dz-sub{font-size:.82rem;color:var(--ink4);}
+
+/* WARNING BOX */
+.warning-box{background:var(--red-d);color:var(--white);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.25rem;display:none;}
+.warning-box.show{display:block;}
+.wb-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;}
+.wb-icon{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;}
+.wb-title{font-size:1rem;font-weight:700;}
+.wb-sub{font-size:.78rem;opacity:.75;margin-top:.1rem;}
+.wb-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.6rem;}
+.wb-field{background:rgba(255,255,255,.08);border-radius:0;padding:.65rem .85rem;}
+.wf-label{font-size:.6rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;opacity:.6;margin-bottom:.2rem;}
+.wf-value{font-size:.82rem;font-weight:500;font-family:var(--mono);}
+.wf-value.danger{color:#fca5a5;}
+
+/* MAP EMBED */
+.map-link{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:0;padding:.5rem .9rem;font-size:.78rem;color:var(--white);text-decoration:none;margin-top:.85rem;transition:background .15s;}
+.map-link:hover{background:rgba(255,255,255,.2);}
+
+/* SAFE FIELDS */
+.safe-box{background:var(--cream2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;display:none;}
+.safe-box.show{display:block;}
+.sb-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink4);margin-bottom:.75rem;}
+.sb-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem;}
+.sb-field{background:var(--white);border:1px solid var(--border);border-radius:0;padding:.55rem .75rem;}
+.sf-label{font-size:.6rem;color:var(--ink4);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:.15rem;}
+.sf-value{font-size:.78rem;color:var(--ink2);font-family:var(--mono);}
+
+/* ACTIONS */
+.action-row{display:flex;gap:.75rem;align-items:center;margin-bottom:1.5rem;display:none;}
+.action-row.show{display:flex;}
+.btn{padding:.65rem 1.4rem;border-radius:0;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid transparent;display:flex;align-items:center;gap:.4rem;}
+.btn-danger{background:var(--red);color:var(--white);}
+.btn-danger:hover{background:var(--red-d);}
+.btn-secondary{background:var(--white);color:var(--ink2);border-color:var(--border);}
+.btn-secondary:hover{background:var(--sage);color:var(--white);border-color:var(--sage);}
+.btn-ghost{background:transparent;color:var(--ink3);border-color:transparent;font-size:.82rem;}
+.btn-ghost:hover{color:var(--red);}
+.scrub-status{font-size:.78rem;color:var(--sage);font-weight:500;display:none;}
+.scrub-status.show{display:block;}
+
+/* RESULT */
+.result-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;box-shadow:var(--shadow);display:none;}
+.result-card.show{display:block;}
+.rc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.rc-title{font-size:.78rem;font-weight:600;color:var(--ink2);}
+.rc-badge{font-size:.68rem;font-weight:600;padding:.2rem .6rem;border-radius:0;background:var(--sage-l);color:var(--sage);}
+.image-compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.img-pane{}
+.ip-label{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink4);margin-bottom:.4rem;}
+.img-pane img{width:100%;border-radius:0;border:1px solid var(--border);}
+.size-compare{display:flex;gap:1rem;margin-top:.75rem;flex-wrap:wrap;}
+.sz-item{font-size:.75rem;color:var(--ink3);}
+.sz-item strong{color:var(--ink);font-weight:600;}
+
+.disclaimer{font-size:.72rem;color:var(--ink3);line-height:1.55;border-top:1px solid var(--border);padding-top:1.2rem;margin-top:.5rem;}
+.disclaimer strong{color:var(--ink2);}
+footer{border-top:1px solid var(--border);padding:1.2rem 2rem;text-align:center;font-size:.78rem;color:var(--ink3);}
+footer a{color:var(--ink2);text-decoration:none;}
+footer a:hover{color:var(--ink);}
+
+/* ══════════ NEVR shared chrome ══════════ */
+.th-nav{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:0 2rem;height:58px;background:rgba(3,5,9,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;}
+.th-brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;flex-shrink:0;}
+.th-brand-mark{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.th-crumb{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--ink3);min-width:0;}
+.th-crumb a{color:inherit;text-decoration:none;transition:color .2s;}
+.th-crumb a:hover{color:var(--royal-bright);}
+.th-crumb .th-sep{color:var(--ink4,var(--ink3));}
+.th-crumb .th-cur{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.th-nav-extra{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.th-about{max-width:1080px;margin:0 auto;padding:4rem 2rem 3.5rem;}
+.th-about-inner{border-top:1px solid var(--line-soft);padding-top:3.5rem;}
+.th-about-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);border:1px solid var(--line);padding:6px 12px;background:rgba(51,85,255,.06);margin-bottom:20px;}
+.th-about h2{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,2.4vw,28px);letter-spacing:-.01em;line-height:1.25;margin-bottom:18px;max-width:34ch;color:var(--ink);}
+.th-about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start;}
+.th-about p{color:var(--ink3);font-size:14px;line-height:1.75;margin-bottom:13px;font-family:var(--f-body);font-weight:300;}
+.th-about p:last-child{margin-bottom:0;}
+.th-about p strong{color:var(--ink);font-weight:600;}
+.th-facts{border:1px solid var(--line);background:var(--panel-2);}
+.th-fact{padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+.th-fact:last-child{border-bottom:none;}
+.th-fact-k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);margin-bottom:6px;}
+.th-fact-v{font-size:13px;color:var(--ink);line-height:1.55;font-family:var(--f-body);}
+
+.th-footer{border-top:1px solid var(--line-soft);padding:24px 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--ink3);}
+.th-footer a{color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px;text-decoration:none;}
+.th-footer a:hover{color:var(--royal-bright);border-color:var(--royal);}
+
+@media (max-width:640px){
+  .th-about{padding:3rem 1.2rem;}
+  .th-about-grid{grid-template-columns:1fr;gap:28px;}
+  .th-nav{padding:0 1.2rem;gap:10px;height:auto;min-height:54px;}
+  .th-footer{padding:18px 1.2rem;flex-direction:column;align-items:flex-start;}
+}
+
+</style>
+</head>
+<body>
+<nav class="th-nav">
+  <a href="index.html" class="th-brand"><img src="nevrwhite.png" class="th-brand-mark" alt="NEVR"></a>
+  <div class="th-crumb"><a href="index.html"></a><span class="th-sep">/</span><span class="th-cur">Photo Privacy Scrubber</span></div>
+</nav>
+<main>
+  <div class="page-header">
+    <div class="tag">🔒 100% Private · Never Uploaded</div>
+    <h1>Photo Privacy <em>Scrubber</em></h1>
+    <p class="subtitle">Share photos — not your home address. Drop any image to reveal hidden GPS data, then scrub it clean in one click.</p>
+  </div>
+
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" accept="image/jpeg,image/jpg,image/tiff,image/webp,image/png">
+    <div class="dz-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="30" rx="3" stroke="#4b5170" stroke-width="1.5"/><circle cx="18" cy="20" r="4" stroke="#4b5170" stroke-width="1.5"/><path d="M6 33l12-10 7 7 6-6 11 10" stroke="#4b5170" stroke-width="1.5" stroke-linejoin="round"/><path d="M30 6l4 4-4 4M34 10H22" stroke="#4b5170" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="dz-text">Drop a photo here to X-Ray its hidden data</div>
+    <div class="dz-sub">JPG, JPEG, TIFF, WebP — works 100% in your browser</div>
+  </div>
+
+  <!-- WARNING -->
+  <div class="warning-box" id="warning-box">
+    <div class="wb-header">
+      <div class="wb-icon">⚠</div>
+      <div>
+        <div class="wb-title" id="wb-title">Hidden data detected in this photo</div>
+        <div class="wb-sub" id="wb-sub">This image contains private metadata</div>
+      </div>
+    </div>
+    <div class="wb-fields" id="wb-fields"></div>
+    <div id="map-section"></div>
+  </div>
+
+  <!-- SAFE FIELDS -->
+  <div class="safe-box" id="safe-box">
+    <div class="sb-title">Preserved (Safe) Metadata</div>
+    <div class="sb-fields" id="sb-fields"></div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="action-row" id="action-row">
+    <button class="btn btn-danger" id="scrub-btn" onclick="scrubImage()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Scrub & Download Clean Image
+    </button>
+    <button class="btn btn-ghost" onclick="reset()">Try another photo</button>
+    <span class="scrub-status" id="scrub-status">✓ Image scrubbed — downloading now</span>
+  </div>
+
+  <!-- RESULT COMPARE -->
+  <div class="result-card" id="result-card">
+    <div class="rc-header">
+      <span class="rc-title">Before & After</span>
+      <span class="rc-badge">✓ EXIF Removed</span>
+    </div>
+    <div class="image-compare">
+      <div class="img-pane">
+        <div class="ip-label">Original (with hidden data)</div>
+        <img id="orig-preview" src="" alt="Original">
+      </div>
+      <div class="img-pane">
+        <div class="ip-label">Scrubbed (safe to share)</div>
+        <img id="clean-preview" src="" alt="Scrubbed">
+      </div>
+    </div>
+    <div class="size-compare">
+      <div class="sz-item">Original: <strong id="orig-size">—</strong></div>
+      <div class="sz-item">·</div>
+      <div class="sz-item">Scrubbed: <strong id="clean-size">—</strong></div>
+      <div class="sz-item">·</div>
+      <div class="sz-item">Data removed: <strong id="removed-size" style="color:var(--sage)">—</strong></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Privacy guarantee:</strong> Your photo never leaves your device. All EXIF reading and stripping runs entirely via browser JavaScript and Canvas API. &nbsp;·&nbsp; <strong>Technical note:</strong> ICC colour profiles and orientation data are preserved so your image renders correctly after scrubbing. JPEG re-encoding is used to strip EXIF — this may cause minor quality changes. For lossless EXIF removal, use ExifTool on your desktop.
+  </div>
+</main>
+
+<section class="th-about">
+  <div class="th-about-inner">
+    <span class="th-about-eyebrow">✦ About This Tool</span>
+    <div class="th-about-grid">
+      <div>
+        <h2>Why we built the Photo Privacy Scrubber</h2>
+        <p>Most phone photos carry hidden EXIF metadata — sometimes including the exact GPS coordinates of where the photo was taken, the device model, and the timestamp down to the second. Upload that photo to a marketplace listing, a rental ad, or a public post, and you can unintentionally hand out your home address. This tool reads that metadata, shows you exactly what's embedded, and strips it before you share the image.</p>
+        <p>It works by reading the image's <strong>EXIF/XMP/IPTC blocks</strong> directly in your browser, flagging anything sensitive (GPS, device serial numbers, timestamps), and re-encoding a clean copy that keeps the pixels identical but drops the metadata. Nothing about the photo — or the fact that you scrubbed it — is ever sent to a server.</p>
+      </div>
+      <div class="th-facts">
+        <div class="th-fact"><div class="th-fact-k">Privacy</div><div class="th-fact-v">Fully offline. Your photo is read and cleaned in-browser — it's never uploaded anywhere.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Detects</div><div class="th-fact-v">GPS location, device info, timestamps, and other identifying EXIF/XMP fields.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Output</div><div class="th-fact-v">A visually identical image with sensitive metadata removed, ready to download.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="th-footer">
+  <span>Made with ❤️ by <a href="https://www.teenywriter.dpdns.org">Teenywriter</a> &nbsp;·&nbsp; Designed by <a href="https://www.pixelshade.in">PixelShade Design Studios</a></span>
+  <a href="index.html">← Back to NEVR</a>
+</footer>
+
+<script>
+/* ══ EXIF TAG DICTIONARY ══ */
+const EXIF_TAGS = {
+  0x010F:'Make',0x0110:'Model',0x0112:'Orientation',
+  0x011A:'XResolution',0x011B:'YResolution',0x0128:'ResolutionUnit',
+  0x0131:'Software',0x0132:'DateTime',0x013B:'Artist',
+  0x8769:'ExifIFD',0x8825:'GPSIFD',0x8298:'Copyright',
+  0xA002:'PixelXDimension',0xA003:'PixelYDimension',
+  0x9003:'DateTimeOriginal',0x9004:'DateTimeDigitized',
+  0x9286:'UserComment',0xA420:'ImageUniqueID',
+  0x9c9b:'XPTitle',0x9c9c:'XPComment',0x9c9f:'XPKeywords',
+};
+const GPS_TAGS={0:'GPSVersionID',1:'GPSLatitudeRef',2:'GPSLatitude',3:'GPSLongitudeRef',4:'GPSLongitude',5:'GPSAltitudeRef',6:'GPSAltitude',7:'GPSTimeStamp',12:'GPSSpeedRef',13:'GPSSpeed',16:'GPSImgDirectionRef',17:'GPSImgDirection',23:'GPSDestBearingRef',24:'GPSDestBearing',29:'GPSDateStamp'};
+
+let currentFile = null;
+let cleanDataURL = null;
+
+/* ══ DROP ZONE ══ */
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e=>{e.preventDefault();dz.classList.add('dragover');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop', e=>{e.preventDefault();dz.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f&&f.type.includes('image'))loadFile(f);});
+document.getElementById('file-input').addEventListener('change',function(){if(this.files[0])loadFile(this.files[0]);this.value='';});
+
+function loadFile(file) {
+  currentFile = file;
+  cleanDataURL = null;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const buf = e.target.result;
+    analyzeEXIF(buf, file);
+    document.getElementById('orig-preview').src = URL.createObjectURL(file);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ══ EXIF PARSER ══ */
+function analyzeEXIF(buffer, file) {
+  const view = new DataView(buffer);
+  const meta = { dangerous:{}, safe:{}, gps:null, hasExif:false };
+
+  // Check JPEG marker
+  if (view.getUint16(0) !== 0xFFD8) {
+    // Not JPEG - canvas strip will still work, but no readable EXIF
+    showNoExif(file);
+    return;
+  }
+
+  let offset = 2;
+  while (offset < view.byteLength - 2) {
+    const marker = view.getUint16(offset);
+    if (marker === 0xFFE1) { // APP1 = EXIF
+      meta.hasExif = true;
+      parseApp1(view, offset + 4, meta);
+      break;
+    }
+    if ((marker & 0xFF00) !== 0xFF00) break;
+    if (offset + 2 >= view.byteLength) break;
+    const len = view.getUint16(offset + 2);
+    offset += 2 + len;
+  }
+
+  renderWarning(meta, file);
+}
+
+function parseApp1(view, start, meta) {
+  try {
+    // EXIF header check
+    const exifHeader = String.fromCharCode(view.getUint8(start), view.getUint8(start+1),view.getUint8(start+2),view.getUint8(start+3));
+    if (exifHeader !== 'Exif') return;
+    const tiffStart = start + 6;
+    const byteOrder = view.getUint16(tiffStart);
+    const littleEndian = byteOrder === 0x4949;
+    const ifdOffset = view.getUint32(tiffStart + 4, littleEndian);
+    parseIFD(view, tiffStart, tiffStart + ifdOffset, littleEndian, meta, false);
+  } catch(e) {}
+}
+
+function parseIFD(view, base, offset, le, meta, isGPS) {
+  try {
+    if (offset + 2 > view.byteLength) return;
+    const count = view.getUint16(offset, le);
+    for (let i = 0; i < count && i < 100; i++) {
+      const pos = offset + 2 + i * 12;
+      if (pos + 12 > view.byteLength) break;
+      const tag = view.getUint16(pos, le);
+      const type = view.getUint16(pos + 2, le);
+      const num  = view.getUint32(pos + 4, le);
+      const valOffset = pos + 8;
+
+      if (!isGPS) {
+        if (tag === 0x8825) { // GPS IFD pointer
+          const gpsOff = view.getUint32(valOffset, le);
+          parseIFD(view, base, base + gpsOff, le, meta, true);
+          continue;
+        }
+        if (tag === 0x8769) { // Exif IFD pointer
+          const exifOff = view.getUint32(valOffset, le);
+          parseIFD(view, base, base + exifOff, le, meta, false);
+          continue;
+        }
+      }
+
+      const name = isGPS ? GPS_TAGS[tag] : EXIF_TAGS[tag];
+      if (!name) continue;
+      const val = readTagValue(view, base, type, num, valOffset, le);
+      if (val === null || val === undefined) continue;
+
+      if (isGPS) {
+        if (!meta.gps) meta.gps = {};
+        meta.gps[name] = val;
+      } else if (['Orientation'].includes(name)) {
+        meta.safe[name] = val;
+      } else if (['Make','Model','Software','DateTime','DateTimeOriginal','Artist','Copyright','XPTitle','XPComment','XPKeywords'].includes(name)) {
+        meta.dangerous[name] = val;
+      } else {
+        meta.safe[name] = val;
+      }
+    }
+  } catch(e) {}
+}
+
+function readTagValue(view, base, type, count, valOffset, le) {
+  try {
+    const byteCount = [0,1,1,2,4,8,1,1,2,4,8,4,8][type] || 1;
+    const totalBytes = byteCount * count;
+    const actualOffset = totalBytes > 4 ? base + view.getUint32(valOffset, le) : valOffset;
+    if (type === 2) { // ASCII
+      let str = '';
+      for (let i = 0; i < Math.min(count, 256); i++) {
+        const c = view.getUint8(actualOffset + i);
+        if (c === 0) break;
+        str += String.fromCharCode(c);
+      }
+      return str.trim() || null;
+    }
+    if (type === 5 || type === 10) { // Rational
+      const num = view.getUint32(actualOffset, le);
+      const den = view.getUint32(actualOffset + 4, le);
+      if (den === 0) return null;
+      return num / den;
+    }
+    if (type === 3) return view.getUint16(valOffset, le);
+    if (type === 4) return view.getUint32(valOffset, le);
+    if (type === 1) return view.getUint8(valOffset);
+  } catch(e) {}
+  return null;
+}
+
+function dmsToDecimal(dms, ref) {
+  if (!Array.isArray(dms) || dms.length < 3) return null;
+  let dec = dms[0] + dms[1]/60 + dms[2]/3600;
+  if (ref === 'S' || ref === 'W') dec = -dec;
+  return dec;
+}
+
+/* ══ RENDER WARNING ══ */
+function renderWarning(meta, file) {
+  const warnBox  = document.getElementById('warning-box');
+  const safeBox  = document.getElementById('safe-box');
+  const actionRow= document.getElementById('action-row');
+  const wbFields = document.getElementById('wb-fields');
+  const sbFields = document.getElementById('sb-fields');
+  const wbTitle  = document.getElementById('wb-title');
+  const wbSub    = document.getElementById('wb-sub');
+
+  const hasDanger = Object.keys(meta.dangerous).length > 0 || meta.gps;
+  const hasSafe   = Object.keys(meta.safe).length > 0;
+
+  // Build dangerous fields
+  let dangerHtml = '';
+  let descParts = [];
+
+  if (meta.gps) {
+    const lat  = meta.gps['GPSLatitude'];
+    const latR = meta.gps['GPSLatitudeRef'];
+    const lon  = meta.gps['GPSLongitude'];
+    const lonR = meta.gps['GPSLongitudeRef'];
+    if (lat && lon) {
+      const latDec = Array.isArray(lat) ? dmsToDecimal(lat, latR) : parseFloat(lat);
+      const lonDec = Array.isArray(lon) ? dmsToDecimal(lon, lonR) : parseFloat(lon);
+      if (latDec !== null && lonDec !== null) {
+        dangerHtml += `<div class="wb-field"><div class="wf-label">GPS Latitude</div><div class="wf-value danger">${latDec.toFixed(6)}°</div></div>`;
+        dangerHtml += `<div class="wb-field"><div class="wf-label">GPS Longitude</div><div class="wf-value danger">${lonDec.toFixed(6)}°</div></div>`;
+        descParts.push('exact GPS location');
+        document.getElementById('map-section').innerHTML =
+          `<a class="map-link" href="https://www.google.com/maps?q=${latDec.toFixed(6)},${lonDec.toFixed(6)}" target="_blank" rel="noopener">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 1C4.015 1 2 3.015 2 5.5c0 3.375 4.5 6.5 4.5 6.5S11 8.875 11 5.5C11 3.015 8.985 1 6.5 1z" stroke="currentColor" stroke-width="1.3"/></svg>
+            View location on Google Maps — this is where you took this photo
+          </a>`;
+      }
+    }
+    if (meta.gps['GPSAltitude']) {
+      dangerHtml += `<div class="wb-field"><div class="wf-label">Altitude</div><div class="wf-value">${Math.round(meta.gps['GPSAltitude'])} m</div></div>`;
+    }
+  }
+
+  Object.entries(meta.dangerous).forEach(([k,v]) => {
+    if (!v) return;
+    dangerHtml += `<div class="wb-field"><div class="wf-label">${k}</div><div class="wf-value danger">${String(v).slice(0,60)}</div></div>`;
+    if (k==='Make'||k==='Model') descParts.push(`device: ${v}`);
+    if (k.includes('DateTime')) descParts.push(`timestamp: ${v}`);
+    if (k==='Artist') descParts.push(`author: ${v}`);
+  });
+
+  // Safe fields
+  let safeHtml = '';
+  Object.entries(meta.safe).forEach(([k,v]) => {
+    if (v===null||v===undefined) return;
+    safeHtml += `<div class="sb-field"><div class="sf-label">${k}</div><div class="sf-value">${String(v).slice(0,40)}</div></div>`;
+  });
+
+  if (hasDanger) {
+    wbTitle.textContent = `⚠ Hidden private data found in "${file.name}"`;
+    wbSub.textContent = descParts.length ? `Contains: ${descParts.join(' · ')}` : 'This image contains metadata that may reveal your identity or location.';
+    wbFields.innerHTML = dangerHtml;
+    warnBox.classList.add('show');
+  } else {
+    warnBox.style.background = 'var(--sage)';
+    wbTitle.textContent = `✓ No dangerous EXIF data found in "${file.name}"`;
+    wbSub.textContent = meta.hasExif ? 'This photo has minimal metadata — safe to share.' : 'This file format or image has no embedded EXIF data.';
+    wbFields.innerHTML = '';
+    warnBox.classList.add('show');
+    document.getElementById('map-section').innerHTML = '';
+  }
+
+  if (hasSafe) {
+    sbFields.innerHTML = safeHtml;
+    safeBox.classList.add('show');
+  }
+
+  actionRow.classList.add('show');
+  document.getElementById('orig-size').textContent = fmtSize(file.size);
+}
+
+function showNoExif(file) {
+  const warnBox = document.getElementById('warning-box');
+  warnBox.style.background = 'var(--sage)';
+  document.getElementById('wb-title').textContent = `No EXIF data detected in "${file.name}"`;
+  document.getElementById('wb-sub').textContent = 'PNG and non-JPEG images rarely contain GPS EXIF. Safe to share.';
+  document.getElementById('wb-fields').innerHTML = '';
+  warnBox.classList.add('show');
+  document.getElementById('action-row').classList.add('show');
+  document.getElementById('orig-size').textContent = fmtSize(file.size);
+}
+
+/* ══ SCRUB ══ */
+function scrubImage() {
+  if (!currentFile) return;
+  const btn = document.getElementById('scrub-btn');
+  btn.disabled = true;
+  btn.textContent = 'Scrubbing…';
+
+  const img = new Image();
+  const url = URL.createObjectURL(currentFile);
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width  = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    // White fill first (handles transparent PNGs)
+    ctx.fillStyle = '#090c14';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+
+    // Re-encode as JPEG — this drops ALL EXIF naturally
+    canvas.toBlob(blob => {
+      cleanDataURL = URL.createObjectURL(blob);
+      // Download
+      const safeName = currentFile.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_\-]/g,'_').toLowerCase() + '_scrubbed.jpg';
+      const a = document.createElement('a');
+      a.href = cleanDataURL; a.download = safeName; a.click();
+
+      // Show comparison
+      document.getElementById('clean-preview').src = cleanDataURL;
+      document.getElementById('result-card').classList.add('show');
+      document.getElementById('clean-size').textContent = fmtSize(blob.size);
+      const removed = currentFile.size - blob.size;
+      document.getElementById('removed-size').textContent = (removed > 0 ? '-' : '+') + fmtSize(Math.abs(removed));
+
+      document.getElementById('scrub-status').classList.add('show');
+      btn.textContent = 'Scrub & Download Clean Image';
+      btn.disabled = false;
+    }, 'image/jpeg', 0.93);
+  };
+  img.onerror = () => { btn.disabled=false; btn.textContent='Scrub & Download Clean Image'; };
+  img.src = url;
+}
+
+function reset() {
+  currentFile = null; cleanDataURL = null;
+  ['warning-box','safe-box','result-card'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('show');
+    el.style.background = '';
+  });
+  document.getElementById('action-row').classList.remove('show');
+  document.getElementById('scrub-status').classList.remove('show');
+  document.getElementById('wb-fields').innerHTML = '';
+  document.getElementById('map-section').innerHTML = '';
+  document.getElementById('file-input').value = '';
+}
+
+function fmtSize(b) {
+  if (b<1024) return b+' B';
+  if (b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(2)+' MB';
+}
+</script>
+</body>
+</html>

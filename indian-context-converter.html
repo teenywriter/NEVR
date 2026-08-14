@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indian Context Converter — NEVR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#030509;--cream2:#0c1120;--cream3:#0c1120;
+  --ink:#edeff7;--ink2:#aab0cc;--ink3:#7c84a0;--ink4:#4b5170;
+  --border:#1b2440;--border2:#12172a;
+  --white:#090c14;
+  --saffron:#ff9f40;--saffron-l:rgba(255,159,64,.10);
+  --green:#52d17c;--green-l:rgba(82,209,124,.10);
+  --blue:#6e85ff;--blue-l:rgba(110,133,255,.10);
+  --navy:#8fa8ff;
+  --radius:0;
+  --shadow:none;
+  --shadow-lg:none;
+  --mono:'JetBrains Mono',monospace;
+
+  --void:#030509;--panel:#090c14;--panel-2:#0c1120;
+  --line:#1b2440;--line-soft:#12172a;
+  --royal:#3355ff;--royal-bright:#6e85ff;--royal-dim:#1a2a80;
+  --f-display:'Space Grotesk',sans-serif;--f-body:'Inter',sans-serif;--f-mono:'JetBrains Mono',monospace;
+}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+nav{padding:.875rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+nav a{color:var(--ink3);text-decoration:none;font-size:.82rem;transition:color .2s;}
+nav a:hover{color:var(--ink);}
+.nav-sep{color:var(--border);}
+.nav-cur{color:var(--ink);font-weight:500;}
+main{flex:1;max-width:1060px;margin:0 auto;padding:2.5rem 2rem 3rem;width:100%;}
+.page-header{margin-bottom:2rem;}
+.tag{display:inline-flex;align-items:center;gap:.4rem;background:var(--saffron-l);color:var(--saffron);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .65rem;border-radius:0;margin-bottom:.8rem;}
+h1{font-family:'Space Grotesk',serif;font-size:2.2rem;font-weight:400;line-height:1.15;margin-bottom:.4rem;}
+h1 em{font-style:italic;color:var(--saffron);}
+.subtitle{color:var(--ink3);font-size:.9rem;font-weight:300;line-height:1.6;max-width:580px;}
+
+/* CATEGORY TABS */
+.cat-tabs{display:flex;gap:.4rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.cat-tab{padding:.4rem 1rem;border:1.5px solid var(--border);border-radius:0;font-size:.78rem;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;background:var(--cream2);}
+.cat-tab.active,.cat-tab:hover{background:var(--navy);color:var(--white);border-color:var(--navy);}
+
+/* NUMBER SYSTEM */
+.currency-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.25rem;}
+.currency-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1rem;}
+.currency-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.num-system-input{display:flex;flex-direction:column;gap:.4rem;}
+.ns-label{font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink4);}
+.ns-input-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:0;overflow:hidden;background:var(--cream);transition:border-color .2s;}
+.ns-input-wrap:focus-within{border-color:var(--saffron);}
+.ns-input-wrap .pfx{padding:.5rem .6rem;background:var(--cream2);font-size:.75rem;color:var(--ink3);border-right:1px solid var(--border);}
+.ns-input-wrap input{flex:1;padding:.5rem .6rem;border:none;background:transparent;font-family:var(--mono);font-size:.88rem;color:var(--ink);outline:none;}
+.ns-result{margin-top:.3rem;font-family:var(--mono);font-size:.72rem;color:var(--ink3);min-height:1.2em;}
+.ns-result strong{color:var(--saffron);font-weight:500;}
+
+/* STATE SELECTOR BAR */
+.state-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:var(--shadow);margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.state-bar-label{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);white-space:nowrap;}
+.state-bar select{padding:.45rem .75rem;border:1.5px solid var(--border);border-radius:0;background:var(--cream);font-family:'Inter',sans-serif;font-size:.85rem;color:var(--ink);outline:none;cursor:pointer;transition:border-color .2s;appearance:none;min-width:200px;}
+.state-bar select:focus{border-color:var(--saffron);}
+.state-bar-note{font-size:.72rem;color:var(--ink4);font-style:italic;}
+
+/* TOLA MODE TOGGLE */
+.tola-toggle{display:flex;gap:.4rem;align-items:center;}
+.tola-opt{padding:.28rem .65rem;border:1.5px solid var(--border);border-radius:0;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .15s;background:var(--cream2);color:var(--ink3);}
+.tola-opt.active{background:var(--saffron);color:var(--white);border-color:var(--saffron);}
+
+/* CONVERTER GRID */
+.converters-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;}
+.converter-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:.75rem;transition:border-color .2s;}
+.converter-card:hover{border-color:var(--saffron);}
+.cc-header{display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.cc-title{font-size:.78rem;font-weight:600;color:var(--ink2);}
+.cc-category{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.15rem .45rem;border-radius:0;white-space:nowrap;}
+.cat-land{background:var(--green-l);color:var(--green);}
+.cat-finance{background:var(--saffron-l);color:var(--saffron);}
+.cat-weight{background:var(--blue-l);color:var(--blue);}
+.cat-volume{background:rgba(167,139,250,.10);color:#a78bfa;}
+.cat-length{background:rgba(62,193,224,.10);color:#3ec1e0;}
+
+/* INPUT ROW — with real swap */
+.cc-input-row{display:grid;grid-template-columns:1fr auto;gap:.4rem;align-items:center;}
+.cc-input-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:0;overflow:hidden;background:var(--cream);transition:border-color .2s;}
+.cc-input-wrap:focus-within{border-color:var(--saffron);}
+.cc-input-wrap input{flex:1;padding:.5rem .65rem;border:none;background:transparent;font-family:'Inter',sans-serif;font-size:.9rem;color:var(--ink);outline:none;min-width:0;}
+.cc-input-wrap .unit-label{padding:.5rem .6rem;font-size:.72rem;color:var(--ink3);border-left:1px solid var(--border);background:var(--cream2);white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
+/* Swap button — real bidirectional swap */
+.swap-btn{width:30px;height:30px;border:1.5px solid var(--border);border-radius:0;background:var(--cream2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink3);transition:all .15s;flex-shrink:0;}
+.swap-btn:hover{background:var(--saffron);color:var(--white);border-color:var(--saffron);}
+
+/* Results */
+.cc-results{display:flex;flex-direction:column;gap:.35rem;}
+.cc-result{display:flex;align-items:baseline;justify-content:space-between;padding:.4rem .6rem;border-radius:0;background:var(--cream);cursor:pointer;transition:background .15s;position:relative;}
+.cc-result:hover{background:var(--cream2);}
+.cc-result.primary{background:var(--saffron-l);}
+.cc-result.primary .res-val{color:var(--saffron);}
+.res-val{font-family:var(--mono);font-size:.82rem;font-weight:500;color:var(--ink2);}
+.res-unit{font-size:.68rem;color:var(--ink4);text-align:right;flex:1;margin-left:.4rem;}
+.copy-flash{font-size:.62rem;color:var(--green);opacity:0;transition:opacity .2s;position:absolute;right:.6rem;}
+.copy-flash.show{opacity:1;}
+
+/* Disclaimer */
+.disclaimer{font-size:.72rem;color:var(--ink3);line-height:1.55;border-top:1px solid var(--border);padding-top:1.2rem;margin-top:1.5rem;}
+.disclaimer strong{color:var(--ink2);}
+footer{border-top:1px solid var(--border);padding:1.2rem 2rem;text-align:center;font-size:.78rem;color:var(--ink3);}
+footer a{color:var(--ink2);text-decoration:none;}
+footer a:hover{color:var(--ink);}
+@media(max-width:780px){.converters-grid{grid-template-columns:1fr 1fr;}.currency-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:520px){.converters-grid{grid-template-columns:1fr;}.currency-grid{grid-template-columns:1fr;}}
+
+/* ══════════ NEVR shared chrome ══════════ */
+.th-nav{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:0 2rem;height:58px;background:rgba(3,5,9,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;}
+.th-brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;flex-shrink:0;}
+.th-brand-mark{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.th-crumb{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--ink3);min-width:0;}
+.th-crumb a{color:inherit;text-decoration:none;transition:color .2s;}
+.th-crumb a:hover{color:var(--royal-bright);}
+.th-crumb .th-sep{color:var(--ink4,var(--ink3));}
+.th-crumb .th-cur{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.th-nav-extra{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.th-about{max-width:1080px;margin:0 auto;padding:4rem 2rem 3.5rem;}
+.th-about-inner{border-top:1px solid var(--line-soft);padding-top:3.5rem;}
+.th-about-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);border:1px solid var(--line);padding:6px 12px;background:rgba(51,85,255,.06);margin-bottom:20px;}
+.th-about h2{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,2.4vw,28px);letter-spacing:-.01em;line-height:1.25;margin-bottom:18px;max-width:34ch;color:var(--ink);}
+.th-about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start;}
+.th-about p{color:var(--ink3);font-size:14px;line-height:1.75;margin-bottom:13px;font-family:var(--f-body);font-weight:300;}
+.th-about p:last-child{margin-bottom:0;}
+.th-about p strong{color:var(--ink);font-weight:600;}
+.th-facts{border:1px solid var(--line);background:var(--panel-2);}
+.th-fact{padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+.th-fact:last-child{border-bottom:none;}
+.th-fact-k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);margin-bottom:6px;}
+.th-fact-v{font-size:13px;color:var(--ink);line-height:1.55;font-family:var(--f-body);}
+
+.th-footer{border-top:1px solid var(--line-soft);padding:24px 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--ink3);}
+.th-footer a{color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px;text-decoration:none;}
+.th-footer a:hover{color:var(--royal-bright);border-color:var(--royal);}
+
+@media (max-width:640px){
+  .th-about{padding:3rem 1.2rem;}
+  .th-about-grid{grid-template-columns:1fr;gap:28px;}
+  .th-nav{padding:0 1.2rem;gap:10px;height:auto;min-height:54px;}
+  .th-footer{padding:18px 1.2rem;flex-direction:column;align-items:flex-start;}
+}
+
+</style>
+</head>
+<body>
+<nav class="th-nav">
+  <a href="index.html" class="th-brand"><img src="nevrwhite.png" class="th-brand-mark" alt="NEVR"></a>
+  <div class="th-crumb"><a href="index.html"></a><span class="th-sep">/</span><span class="th-cur">Indian Context Converter</span></div>
+</nav>
+<main>
+  <div class="page-header">
+    <div class="tag">🇮🇳 Bridging Local & Global Units</div>
+    <h1>Indian Context <em>Converter</em></h1>
+    <p class="subtitle">Bigha to acres, Tola to grams, Lakhs to millions — all the conversions that global calculators get wrong.</p>
+  </div>
+
+  <div class="cat-tabs">
+    <div class="cat-tab active" data-cat="all" onclick="filterCat('all',this)">All</div>
+    <div class="cat-tab" data-cat="finance" onclick="filterCat('finance',this)">Finance & Numbers</div>
+    <div class="cat-tab" data-cat="land" onclick="filterCat('land',this)">Land & Area</div>
+    <div class="cat-tab" data-cat="weight" onclick="filterCat('weight',this)">Weight & Jewellery</div>
+    <div class="cat-tab" data-cat="volume" onclick="filterCat('volume',this)">Volume</div>
+    <div class="cat-tab" data-cat="length" onclick="filterCat('length',this)">Length</div>
+  </div>
+
+  <!-- NUMBER SYSTEM -->
+  <div class="currency-card" data-cat="finance" id="num-system-card">
+    <div class="currency-header">
+      <span style="font-size:.78rem;font-weight:600;color:var(--ink2)">Number System Converter</span>
+      <span class="cc-category cat-finance">Finance</span>
+    </div>
+    <div class="currency-grid">
+      <div class="num-system-input">
+        <div class="ns-label">Indian Number</div>
+        <div class="ns-input-wrap"><span class="pfx">₹</span><input type="number" id="ns-indian" placeholder="1500000" oninput="syncNum('indian',this.value)"></div>
+        <div class="ns-result" id="ns-indian-r"></div>
+      </div>
+      <div class="num-system-input">
+        <div class="ns-label">Lakhs</div>
+        <div class="ns-input-wrap"><span class="pfx">L</span><input type="number" id="ns-lakh" placeholder="15" oninput="syncNum('lakh',this.value)"></div>
+        <div class="ns-result" id="ns-lakh-r"></div>
+      </div>
+      <div class="num-system-input">
+        <div class="ns-label">Crores</div>
+        <div class="ns-input-wrap"><span class="pfx">Cr</span><input type="number" id="ns-crore" placeholder="0.15" oninput="syncNum('crore',this.value)"></div>
+        <div class="ns-result" id="ns-crore-r"></div>
+      </div>
+      <div class="num-system-input">
+        <div class="ns-label">International (Millions)</div>
+        <div class="ns-input-wrap"><span class="pfx">M</span><input type="number" id="ns-million" placeholder="1.5" oninput="syncNum('million',this.value)"></div>
+        <div class="ns-result" id="ns-million-r"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE SELECTOR (for Land cards) -->
+  <div class="state-bar" id="state-bar" data-cat="land">
+    <span class="state-bar-label">⚠ Land State</span>
+    <select id="state-select" onchange="rebuildCards()">
+      <option value="UP">Uttar Pradesh / Punjab (2529 m²)</option>
+      <option value="GJ">Gujarat / Rajasthan (1618 m²)</option>
+      <option value="WB">West Bengal (1333 m²)</option>
+      <option value="MP">Madhya Pradesh (1092 m²)</option>
+      <option value="HR">Haryana (2529 m²)</option>
+      <option value="MH">Maharashtra / Standard (2508 m²)</option>
+    </select>
+    <span class="state-bar-note">Bigha values vary by state — select your state for accurate results.</span>
+  </div>
+
+  <!-- TOLA MODE (for Weight cards) -->
+  <div class="state-bar" id="tola-bar" data-cat="weight" style="display:none">
+    <span class="state-bar-label">Tola Standard</span>
+    <div class="tola-toggle">
+      <span class="tola-opt active" data-tola="market" onclick="setTolaMode('market',this)">Market / Bhari (10g) — Modern jewellery shops</span>
+      <span class="tola-opt" data-tola="traditional" onclick="setTolaMode('traditional',this)">Traditional (11.66g) — Old documents</span>
+    </div>
+  </div>
+
+  <div class="converters-grid" id="converters-grid"></div>
+
+  <div class="disclaimer">
+    <strong>Important:</strong> Bigha and other land units are not standardized nationally — values differ significantly by state. Always verify with official revenue records (7/12 extract, Pahani, Khasra). Gold weight: Market/Bhari Tola = 10g (modern standard); Traditional Tola = 11.66g (old documents). Consult a certified jeweller for transactions.
+  </div>
+</main>
+
+<section class="th-about">
+  <div class="th-about-inner">
+    <span class="th-about-eyebrow">✦ About This Tool</span>
+    <div class="th-about-grid">
+      <div>
+        <h2>Why we built the Indian Context Converter</h2>
+        <p>Global unit converters know metres and kilograms — they've never heard of a <strong>bigha</strong>, a <strong>tola</strong>, or a <strong>lakh</strong>. But land deeds in most Indian states are still measured in bigha or gunta, jewellers weigh gold in tola, grocers sell in pav and chhatak, and every Indian salary slip and property price is written in lakhs and crores rather than millions. This tool covers the everyday conversions — land, weight, volume, length, and Indian number formatting — that international calculators simply get wrong or don't offer at all.</p>
+        <p>Each converter uses the <strong>regional conversion factor</strong> most commonly cited for that unit (bigha varies by state, so a note flags that), and the Indian numbering card turns any number into its lakh/crore form and back, plus spells it out in words the way it'd appear on a cheque.</p>
+      </div>
+      <div class="th-facts">
+        <div class="th-fact"><div class="th-fact-k">Categories</div><div class="th-fact-v">Land (bigha, gunta, sq. ft), Weight (tola, maund, seer), Volume (pav, chhatak), Length (gaj, kos, hath), and Indian numbering.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Privacy</div><div class="th-fact-v">All conversions happen instantly in your browser — nothing is sent anywhere.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Note</div><div class="th-fact-v">Some traditional units (like bigha) vary by state — cross-check for legal or land-deed use.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="th-footer">
+  <span>Made with ❤️ by <a href="https://www.teenywriter.dpdns.org">Teenywriter</a> &nbsp;·&nbsp; Designed by <a href="https://www.pixelshade.in">PixelShade Design Studios</a></span>
+  <a href="index.html">← Back to NEVR</a>
+</footer>
+
+<script>
+/* ══ NUMBER SYSTEM ══ */
+function syncNum(src, val) {
+  val = parseFloat(val);
+  if (isNaN(val)) { ['indian','lakh','crore','million'].forEach(k => { document.getElementById('ns-'+k+'-r').innerHTML=''; }); return; }
+  let base;
+  if(src==='indian') base=val; if(src==='lakh') base=val*1e5; if(src==='crore') base=val*1e7; if(src==='million') base=val*1e6;
+  if(src!=='indian')  document.getElementById('ns-indian').value=base;
+  if(src!=='lakh')    document.getElementById('ns-lakh').value=+(base/1e5).toPrecision(6);
+  if(src!=='crore')   document.getElementById('ns-crore').value=+(base/1e7).toPrecision(6);
+  if(src!=='million') document.getElementById('ns-million').value=+(base/1e6).toPrecision(6);
+  document.getElementById('ns-indian-r').innerHTML=`<strong>${numToIndianWords(Math.round(base))}</strong>`;
+  document.getElementById('ns-lakh-r').innerHTML=`${smartFmt(base/1e5)} Lakhs`;
+  document.getElementById('ns-crore-r').innerHTML=`${smartFmt(base/1e7)} Crores`;
+  document.getElementById('ns-million-r').innerHTML=`${smartFmt(base/1e6)} Million`;
+}
+function numToIndianWords(n){
+  if(!n)return'Zero';
+  const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  function b100(n){return n<20?ones[n]:tens[Math.floor(n/10)]+(n%10?' '+ones[n%10]:'');}
+  function b1000(n){return n<100?b100(n):ones[Math.floor(n/100)]+' Hundred'+(n%100?' '+b100(n%100):'');}
+  let p=[];
+  if(n>=1e7){p.push(b1000(Math.floor(n/1e7))+' Crore');n%=1e7;}
+  if(n>=1e5){p.push(b100(Math.floor(n/1e5))+' Lakh');n%=1e5;}
+  if(n>=1e3){p.push(b100(Math.floor(n/1e3))+' Thousand');n%=1e3;}
+  if(n>0)p.push(b1000(n));
+  return p.join(' ');
+}
+function smartFmt(n){return parseFloat(parseFloat(n).toPrecision(6)).toString();}
+
+/* ══ STATE-DEPENDENT BIGHA VALUES (sq metres per Bigha) ══ */
+const BIGHA_SQM = { UP:2529, GJ:1618, WB:1333, MP:1092, HR:2529, MH:2508 };
+let currentState = 'MH';
+let tolaGrams = 10; // default: market standard
+
+function getStateBigha(){ return BIGHA_SQM[currentState] || 2508; }
+
+function setTolaMode(mode, btn) {
+  document.querySelectorAll('.tola-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  tolaGrams = mode === 'market' ? 10 : 11.6638;
+  rebuildCards();
+}
+
+/* ══ CARD DEFINITIONS — dynamic factors ══ */
+function getCards() {
+  const bSqm = getStateBigha();
+  const bAcre = bSqm / 4046.86;
+  const bHa   = bSqm / 10000;
+  const bSqft = bSqm * 10.7639;
+  const bGunta = bSqm / 101.17;
+
+  return [
+    /* LAND */
+    { id:'bigha-out', title:'Bigha → Standard Units', category:'land', catLabel:'Land',
+      fromUnit:'Bigha', reversed:false,
+      toUnits:[
+        {label:'Acre', factor:bAcre},
+        {label:'Hectare', factor:bHa},
+        {label:'Sq. Metre', factor:bSqm},
+        {label:'Sq. Feet', factor:bSqft},
+        {label:'Gunta', factor:bGunta},
+      ]},
+    { id:'sqm-bigha', title:'Sq. Metre → Indian Land', category:'land', catLabel:'Land',
+      fromUnit:'Sq. Metre', reversed:false,
+      toUnits:[
+        {label:'Bigha', factor:1/bSqm},
+        {label:'Sq. Feet', factor:10.7639},
+        {label:'Sq. Yard', factor:1.19599},
+        {label:'Acre', factor:1/4046.86},
+      ]},
+    { id:'gunta-out', title:'Gunta → Area', category:'land', catLabel:'Land',
+      fromUnit:'Gunta', reversed:false,
+      toUnits:[
+        {label:'Sq. Feet', factor:1089},
+        {label:'Sq. Metre', factor:101.17},
+        {label:'Acre', factor:0.025},
+        {label:'Bigha', factor:101.17/bSqm},
+      ]},
+    { id:'sqft-sqm', title:'Sq. Feet ↔ Sq. Metres', category:'land', catLabel:'Land',
+      fromUnit:'Sq. Feet', reversed:false,
+      toUnits:[
+        {label:'Sq. Metre', factor:0.0929},
+        {label:'Sq. Yard', factor:0.1111},
+        {label:'Sq. Inch', factor:144},
+        {label:'Cent', factor:0.002296},
+      ]},
+    /* WEIGHT */
+    { id:'tola-gram', title:'Tola → Weight', category:'weight', catLabel:'Weight',
+      fromUnit:`Tola (${tolaGrams === 10 ? '10g market' : '11.66g traditional'})`, reversed:false,
+      toUnits:[
+        {label:'Gram', factor:tolaGrams},
+        {label:'Kilogram', factor:tolaGrams/1000},
+        {label:'Troy Oz', factor:tolaGrams/31.1035},
+        {label:'Ounce', factor:tolaGrams/28.3495},
+      ]},
+    { id:'gram-tola', title:'Gram → Jewellery Units', category:'weight', catLabel:'Weight',
+      fromUnit:'Gram', reversed:false,
+      toUnits:[
+        {label:`Tola (${tolaGrams}g)`, factor:1/tolaGrams},
+        {label:'Ratti', factor:1/0.1215},
+        {label:'Masha', factor:1/0.972},
+        {label:'Carat (Gem)', factor:5},
+      ]},
+    { id:'maund-kg', title:'Maund & Seer', category:'weight', catLabel:'Weight',
+      fromUnit:'Maund', reversed:false,
+      toUnits:[
+        {label:'Kilogram', factor:37.3242},
+        {label:'Seer', factor:40},
+        {label:`Tola (${tolaGrams}g)`, factor:37324.2/tolaGrams},
+        {label:'Pound', factor:82.286},
+      ]},
+    /* VOLUME */
+    { id:'litre-cup', title:'Litre → Cooking Units', category:'volume', catLabel:'Volume',
+      fromUnit:'Litre', reversed:false,
+      toUnits:[
+        {label:'Ml', factor:1000},
+        {label:'Cup (200 ml)', factor:5},
+        {label:'Tablespoon', factor:66.67},
+        {label:'Teaspoon', factor:200},
+      ]},
+    { id:'pav-kg', title:'Pav / Chhatak → Weight', category:'volume', catLabel:'Volume',
+      fromUnit:'Pav (250g)', reversed:false,
+      toUnits:[
+        {label:'Gram', factor:250},
+        {label:'Kilogram', factor:0.25},
+        {label:'Chhatak (60g)', factor:4.167},
+        {label:'Ounce', factor:8.818},
+      ]},
+    /* LENGTH */
+    { id:'gaj-metre', title:'Gaj / Yard → Metres', category:'length', catLabel:'Length',
+      fromUnit:'Gaj (Yard)', reversed:false,
+      toUnits:[
+        {label:'Metre', factor:0.9144},
+        {label:'Feet', factor:3},
+        {label:'Inch', factor:36},
+        {label:'Cm', factor:91.44},
+      ]},
+    { id:'kos-km', title:'Kos → Distance', category:'length', catLabel:'Length',
+      fromUnit:'Kos (≈3.2 km)', reversed:false,
+      toUnits:[
+        {label:'Kilometre', factor:3.2},
+        {label:'Mile', factor:1.988},
+        {label:'Metre', factor:3200},
+      ]},
+    { id:'hath-cm', title:'Hath / Cubit', category:'length', catLabel:'Length',
+      fromUnit:'Hath (Cubit)', reversed:false,
+      toUnits:[
+        {label:'Cm', factor:45.72},
+        {label:'Metre', factor:0.4572},
+        {label:'Inch', factor:18},
+      ]},
+  ];
+}
+
+const CAT_CLASS = {land:'cat-land',finance:'cat-finance',weight:'cat-weight',volume:'cat-volume',length:'cat-length'};
+
+/* ══ BUILD & REBUILD ══ */
+// Store per-card input values so they survive rebuild
+const cardInputValues = {};
+
+function rebuildCards() {
+  currentState = document.getElementById('state-select').value;
+  // Capture current input values
+  document.querySelectorAll('.converter-card').forEach(card => {
+    const inp = card.querySelector('input');
+    if (inp) cardInputValues[card.id] = inp.value;
+  });
+
+  const grid = document.getElementById('converters-grid');
+  const cards = getCards();
+  const activeCat = document.querySelector('.cat-tab.active')?.dataset.cat || 'all';
+
+  grid.innerHTML = cards.map(card => {
+    const savedVal = cardInputValues['card-'+card.id] || '';
+    const isReversed = card._reversed || false;
+    const dispFromUnit = isReversed ? (card.toUnits[0]?.label || '') : card.fromUnit;
+
+    const resultsHtml = card.toUnits.map((u,i) =>
+      `<div class="cc-result ${i===0?'primary':''}" onclick="copyResult(this)" title="Click to copy">
+        <span class="res-val" id="val-${card.id}-${i}">—</span>
+        <span class="res-unit">${isReversed ? card.fromUnit : u.label}</span>
+        <span class="copy-flash">✓ copied</span>
+       </div>`
+    ).join('');
+
+    return `<div class="converter-card" data-cat="${card.category}" id="card-${card.id}" style="${activeCat!=='all'&&card.category!==activeCat?'display:none':''}">
+      <div class="cc-header">
+        <span class="cc-title">${card.title}</span>
+        <span class="cc-category ${CAT_CLASS[card.category]}">${card.catLabel}</span>
+      </div>
+      <div class="cc-input-row">
+        <div class="cc-input-wrap">
+          <input type="number" placeholder="Enter value"
+            oninput="convert('${card.id}', this.value)"
+            id="inp-${card.id}" value="${savedVal}">
+          <span class="unit-label" id="fromlabel-${card.id}">${dispFromUnit}</span>
+        </div>
+        <button class="swap-btn" onclick="swapCard('${card.id}')" title="Swap direction">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M2 4.5h9M8.5 2l2.5 2.5-2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M11 8.5H2M4.5 6l-2.5 2.5L4.5 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="cc-results">${resultsHtml}</div>
+    </div>`;
+  }).join('');
+
+  // Re-run conversions for inputs that have values
+  cards.forEach(card => {
+    const v = cardInputValues['card-'+card.id];
+    if (v) convert(card.id, v);
+  });
+}
+
+/* ══ CONVERT ══ */
+// Track reversed state per card
+const cardReversed = {};
+
+function convert(cardId, rawVal) {
+  const cards = getCards();
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return;
+  const val = parseFloat(rawVal);
+  const reversed = cardReversed[cardId] || false;
+
+  card.toUnits.forEach((u, i) => {
+    const el = document.getElementById(`val-${cardId}-${i}`);
+    if (!el) return;
+    if (isNaN(val) || rawVal === '') { el.textContent = '—'; return; }
+    const result = reversed ? val / u.factor : val * u.factor;
+    el.textContent = formatResult(result);
+  });
+}
+
+function formatResult(r) {
+  if (isNaN(r) || !isFinite(r)) return '—';
+  if (r >= 1e7)      return r.toLocaleString('en-IN',{maximumFractionDigits:2});
+  if (r >= 1000)     return r.toLocaleString('en-IN',{maximumFractionDigits:3});
+  if (r >= 1)        return parseFloat(r.toFixed(6)).toString();
+  return parseFloat(r.toPrecision(5)).toString();
+}
+
+/* ══ REAL SWAP — inverts the math direction ══ */
+function swapCard(cardId) {
+  const cards = getCards();
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return;
+  const isReversed = cardReversed[cardId] = !cardReversed[cardId];
+
+  // Swap label between fromUnit and first toUnit label
+  const fromLabel = document.getElementById(`fromlabel-${cardId}`);
+  if (fromLabel) {
+    fromLabel.textContent = isReversed ? card.toUnits[0].label : card.fromUnit;
+  }
+  // Update result unit labels
+  card.toUnits.forEach((u, i) => {
+    const resUnitEl = document.querySelector(`#card-${cardId} .cc-result:nth-child(${i+1}) .res-unit`);
+    if (resUnitEl) resUnitEl.textContent = isReversed ? card.fromUnit : u.label;
+  });
+  // Re-run conversion
+  const inp = document.getElementById(`inp-${cardId}`);
+  if (inp && inp.value) convert(cardId, inp.value);
+}
+
+/* ══ COPY ══ */
+function copyResult(el) {
+  const val  = el.querySelector('.res-val')?.textContent;
+  const unit = el.querySelector('.res-unit')?.textContent;
+  const flash = el.querySelector('.copy-flash');
+  if (!val || val === '—') return;
+  navigator.clipboard.writeText(`${val} ${unit}`).then(() => {
+    flash.classList.add('show');
+    setTimeout(() => flash.classList.remove('show'), 1500);
+  });
+}
+
+/* ══ FILTER ══ */
+function filterCat(cat, btn) {
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.converter-card').forEach(card => {
+    card.style.display = (cat==='all' || card.dataset.cat===cat) ? '' : 'none';
+  });
+  const numCard = document.getElementById('num-system-card');
+  numCard.style.display = (cat==='all' || cat==='finance') ? '' : 'none';
+  const stateBar = document.getElementById('state-bar');
+  stateBar.style.display = (cat==='all' || cat==='land') ? '' : 'none';
+  const tolaBar = document.getElementById('tola-bar');
+  tolaBar.style.display = (cat==='all' || cat==='weight') ? '' : 'none';
+}
+
+/* ══ INIT ══ */
+rebuildCards();
+</script>
+</body>
+</html>

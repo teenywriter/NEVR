@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text Organizer — NEVR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#030509;--cream2:#0c1120;
+  --ink:#edeff7;--ink2:#aab0cc;--ink3:#7c84a0;--ink4:#4b5170;
+  --border:#1b2440;--border2:#12172a;
+  --white:#090c14;
+  --blue:#6e85ff;--blue-l:rgba(110,133,255,.10);--blue-d:#3355ff;
+  --terra:#ff8a5c;--terra-l:rgba(255,138,92,.10);
+  --sage:#52d17c;--sage-l:rgba(82,209,124,.10);
+  --radius:0;
+  --shadow:none;
+
+  --void:#030509;--panel:#090c14;--panel-2:#0c1120;
+  --line:#1b2440;--line-soft:#12172a;
+  --royal:#3355ff;--royal-bright:#6e85ff;--royal-dim:#1a2a80;
+  --f-display:'Space Grotesk',sans-serif;--f-body:'Inter',sans-serif;--f-mono:'JetBrains Mono',monospace;
+}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+nav{padding:.875rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+nav a{color:var(--ink3);text-decoration:none;font-size:.82rem;transition:color .2s;}
+nav a:hover{color:var(--ink);}
+.nav-sep{color:var(--border);}
+.nav-cur{color:var(--ink);font-weight:500;}
+
+main{flex:1;max-width:1200px;margin:0 auto;padding:2.5rem 2rem 3rem;width:100%;}
+
+.page-header{margin-bottom:2rem;}
+.tag{display:inline-flex;align-items:center;gap:.4rem;background:var(--blue-l);color:var(--blue);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .65rem;border-radius:0;margin-bottom:.8rem;}
+h1{font-family:'Space Grotesk',serif;font-size:2.2rem;font-weight:400;line-height:1.15;margin-bottom:.4rem;}
+h1 em{font-style:italic;color:var(--blue);}
+.subtitle{color:var(--ink3);font-size:.9rem;font-weight:300;line-height:1.6;}
+
+/* ── TRANSFORMS PANEL ── */
+.transforms-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.25rem;box-shadow:var(--shadow);}
+.bar-row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;}
+.bar-label{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink4);margin-right:.25rem;white-space:nowrap;}
+.toggle-chip{
+  padding:.28rem .7rem;border:1.5px solid var(--border);border-radius:0;font-size:.75rem;
+  font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;background:var(--cream);
+  user-select:none;
+}
+.toggle-chip.on{background:var(--blue);color:var(--white);border-color:var(--blue);}
+.toggle-chip:focus{outline:2px solid var(--blue);outline-offset:2px;}
+.toggle-chip.on.green{background:var(--sage);border-color:var(--sage);}
+.toggle-chip.on.amber{background:#f2b84b;border-color:#f2b84b;}
+.toggle-chip.on.red{background:var(--terra);border-color:var(--terra);}
+.chip-sep{width:1px;height:20px;background:var(--border);margin:0 .25rem;flex-shrink:0;}
+
+/* ── EDITOR AREA ── */
+.editor-layout{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;}
+
+.editor-pane{display:flex;flex-direction:column;gap:0;}
+.pane-header{display:flex;align-items:center;justify-content:space-between;padding:.6rem .9rem;background:var(--cream2);border:1px solid var(--border);border-bottom:none;border-radius:var(--radius) var(--radius) 0 0;}
+.pane-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);}
+.pane-actions{display:flex;gap:.3rem;align-items:center;}
+.pane-meta{font-size:.68rem;color:var(--ink4);}
+.pa-btn{padding:.2rem .55rem;border:1.5px solid var(--border);border-radius:0;background:var(--white);font-family:'Inter',sans-serif;font-size:.7rem;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.25rem;}
+.pa-btn:hover{background:var(--royal);color:#fff;border-color:var(--royal);}
+.pa-btn.green:hover{background:var(--sage);border-color:var(--sage);}
+.pa-btn.copied{background:var(--sage);color:var(--white);border-color:var(--sage);}
+
+textarea#input-text{
+  width:100%;min-height:480px;resize:vertical;
+  padding:1rem 1.1rem;
+  border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);
+  background:var(--white);
+  font-family:'Lora',Georgia,serif;font-size:.9rem;color:var(--ink);line-height:1.75;
+  outline:none;transition:border-color .2s;
+}
+textarea#input-text:focus{border-color:var(--blue);}
+textarea#input-text::placeholder{color:var(--ink4);}
+
+.output-text{
+  width:100%;min-height:480px;
+  padding:1rem 1.1rem;
+  border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);
+  background:var(--white);
+  font-family:'Lora',Georgia,serif;font-size:.9rem;color:var(--ink);line-height:1.75;
+  white-space:pre-wrap;word-break:break-word;overflow-y:auto;
+}
+.output-text.empty{color:var(--ink4);font-style:italic;}
+
+/* Diff highlights */
+.diff-add{background:rgba(82,209,124,.18);border-radius:0;}
+.diff-del{background:rgba(255,92,92,.18);text-decoration:line-through;border-radius:0;}
+
+/* Stats bar */
+.stats-row{display:flex;gap:1rem;flex-wrap:wrap;padding:.6rem .9rem;background:var(--cream2);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);font-size:.7rem;color:var(--ink3);}
+.stat-item strong{color:var(--ink2);font-weight:600;}
+
+/* Diff toggle */
+.diff-toggle{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--ink3);}
+.diff-toggle input{accent-color:var(--blue);}
+
+/* Disclaimer */
+.disclaimer{font-size:.72rem;color:var(--ink3);line-height:1.55;border-top:1px solid var(--border);padding-top:1.2rem;margin-top:1.5rem;}
+.disclaimer strong{color:var(--ink2);}
+
+footer{border-top:1px solid var(--border);padding:1.2rem 2rem;text-align:center;font-size:.78rem;color:var(--ink3);}
+footer a{color:var(--ink2);text-decoration:none;}
+footer a:hover{color:var(--ink);}
+
+@media(max-width:768px){.editor-layout{grid-template-columns:1fr;}textarea#input-text,,.output-text{min-height:280px;}}
+
+/* ══════════ NEVR shared chrome ══════════ */
+.th-nav{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:0 2rem;height:58px;background:rgba(3,5,9,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;}
+.th-brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;flex-shrink:0;}
+.th-brand-mark{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.th-crumb{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--ink3);min-width:0;}
+.th-crumb a{color:inherit;text-decoration:none;transition:color .2s;}
+.th-crumb a:hover{color:var(--royal-bright);}
+.th-crumb .th-sep{color:var(--ink4,var(--ink3));}
+.th-crumb .th-cur{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.th-nav-extra{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.th-about{max-width:1080px;margin:0 auto;padding:4rem 2rem 3.5rem;}
+.th-about-inner{border-top:1px solid var(--line-soft);padding-top:3.5rem;}
+.th-about-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);border:1px solid var(--line);padding:6px 12px;background:rgba(51,85,255,.06);margin-bottom:20px;}
+.th-about h2{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,2.4vw,28px);letter-spacing:-.01em;line-height:1.25;margin-bottom:18px;max-width:34ch;color:var(--ink);}
+.th-about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start;}
+.th-about p{color:var(--ink3);font-size:14px;line-height:1.75;margin-bottom:13px;font-family:var(--f-body);font-weight:300;}
+.th-about p:last-child{margin-bottom:0;}
+.th-about p strong{color:var(--ink);font-weight:600;}
+.th-facts{border:1px solid var(--line);background:var(--panel-2);}
+.th-fact{padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+.th-fact:last-child{border-bottom:none;}
+.th-fact-k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);margin-bottom:6px;}
+.th-fact-v{font-size:13px;color:var(--ink);line-height:1.55;font-family:var(--f-body);}
+
+.th-footer{border-top:1px solid var(--line-soft);padding:24px 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--ink3);}
+.th-footer a{color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px;text-decoration:none;}
+.th-footer a:hover{color:var(--royal-bright);border-color:var(--royal);}
+
+@media (max-width:640px){
+  .th-about{padding:3rem 1.2rem;}
+  .th-about-grid{grid-template-columns:1fr;gap:28px;}
+  .th-nav{padding:0 1.2rem;gap:10px;height:auto;min-height:54px;}
+  .th-footer{padding:18px 1.2rem;flex-direction:column;align-items:flex-start;}
+}
+
+</style>
+</head>
+<body>
+
+<nav class="th-nav">
+  <a href="index.html" class="th-brand"><img src="nevrwhite.png" class="th-brand-mark" alt="NEVR"></a>
+  <div class="th-crumb"><a href="index.html"></a><span class="th-sep">/</span><span class="th-cur">Text Organizer</span></div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <div class="tag">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3h6M2 5h6M2 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Writers & Creators
+    </div>
+    <h1>The Text <em>Organizer</em></h1>
+    <p class="subtitle">Rescue messy AI outputs. Strip markdown, fix typography, remove duplicates, and standardize formatting — all in one pass.</p>
+  </div>
+
+  <!-- TRANSFORMS -->
+  <div class="transforms-bar">
+    <div class="bar-row" style="margin-bottom:.6rem;">
+      <span class="bar-label">AI Cleanup</span>
+      <span class="toggle-chip on" data-op="strip-markdown" tabindex="0" role="button">Strip Markdown (#, **, __, ~~)</span>
+      <span class="toggle-chip on" data-op="strip-hashtags" tabindex="0" role="button">Strip #hashtags</span>
+      <span class="toggle-chip on" data-op="strip-emojis" tabindex="0" role="button">Strip Emojis</span>
+      <span class="toggle-chip on" data-op="strip-bullets" tabindex="0" role="button">Strip Bullet Points</span>
+      <div class="chip-sep"></div>
+      <span class="bar-label">Duplicates</span>
+      <span class="toggle-chip on green" data-op="remove-dup-lines" tabindex="0" role="button">Remove Duplicate Lines</span>
+      <span class="toggle-chip" data-op="remove-dup-words" tabindex="0" role="button">Remove Duplicate Words</span>
+    </div>
+    <div class="bar-row" style="margin-bottom:.6rem;">
+      <span class="bar-label">Typography</span>
+      <span class="toggle-chip on amber" data-op="smart-quotes" tabindex="0" role="button">"Smart Quotes"</span>
+      <span class="toggle-chip on amber" data-op="em-dashes" tabindex="0" role="button">Double-Hyphen → Em-Dash</span>
+      <span class="toggle-chip" data-op="ellipsis" tabindex="0" role="button">... → Ellipsis (…)</span>
+      <span class="toggle-chip" data-op="fix-spaces" tabindex="0" role="button">Fix Double Spaces</span>
+      <div class="chip-sep"></div>
+      <span class="bar-label">Casing</span>
+      <span class="toggle-chip" data-op="case-sentence" tabindex="0" role="button">Sentence Case</span>
+      <span class="toggle-chip" data-op="case-title" tabindex="0" role="button">Title Case</span>
+      <span class="toggle-chip" data-op="case-lower" tabindex="0" role="button">lowercase</span>
+      <span class="toggle-chip" data-op="case-upper" tabindex="0" role="button">UPPERCASE</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">Lines</span>
+      <span class="toggle-chip" data-op="sort-az" tabindex="0" role="button">Sort A → Z</span>
+      <span class="toggle-chip" data-op="sort-za" tabindex="0" role="button">Sort Z → A</span>
+      <span class="toggle-chip" data-op="trim-lines" tabindex="0" role="button">Trim Line Whitespace</span>
+      <span class="toggle-chip" data-op="remove-blank" tabindex="0" role="button">Remove Blank Lines</span>
+      <span class="toggle-chip" data-op="number-lines" tabindex="0" role="button">Number Lines</span>
+      <div class="chip-sep"></div>
+      <span class="bar-label">Encode</span>
+      <span class="toggle-chip" data-op="url-encode" tabindex="0" role="button">URL Encode</span>
+      <span class="toggle-chip" data-op="url-decode" tabindex="0" role="button">URL Decode</span>
+      <span class="toggle-chip" data-op="base64-enc" tabindex="0" role="button">Base64 Encode</span>
+      <span class="toggle-chip" data-op="base64-dec" tabindex="0" role="button">Base64 Decode</span>
+      <div class="chip-sep"></div>
+      <label class="diff-toggle"><input type="checkbox" id="diff-mode" onchange="processText()"> Show Changes</label>
+    </div>
+  </div>
+
+  <!-- EDITORS -->
+  <div class="editor-layout">
+    <div class="editor-pane">
+      <div class="pane-header">
+        <span class="pane-title">Input</span>
+        <div class="pane-actions">
+          <span class="pane-meta" id="input-meta">0 words · 0 chars</span>
+          <button class="pa-btn" onclick="pasteText()">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x=".5" y="3.5" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 3.5V2A1.5 1.5 0 014.5.5h4A1.5 1.5 0 0110 2v4A1.5 1.5 0 018.5 7.5H7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Paste
+          </button>
+          <button class="pa-btn" onclick="clearInput()">Clear</button>
+        </div>
+      </div>
+      <textarea id="input-text" placeholder="Paste your messy AI text, article, list, or anything here…
+
+## Example AI Output (try pasting this)
+**Introduction**: Artificial intelligence is revolutionizing--how we work.
+
+- bullet point one
+- bullet point two
+- bullet point one
+
+She said &quot;hello world&quot; and the system said &quot;goodbye.&quot;
+
+The quick brown fox... The quick brown fox... repeated line!" oninput="processText()"></textarea>
+    </div>
+
+    <div class="editor-pane">
+      <div class="pane-header">
+        <span class="pane-title" id="output-title">Output</span>
+        <div class="pane-actions">
+          <span class="pane-meta" id="output-meta">0 words · 0 chars</span>
+          <button class="pa-btn green" id="copy-out-btn" onclick="copyOutput()">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x=".5" y="3.5" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 3.5V2A1.5 1.5 0 014.5.5h4A1.5 1.5 0 0110 2v4A1.5 1.5 0 018.5 7.5H7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Copy
+          </button>
+          <button class="pa-btn" onclick="downloadOutput()">Download</button>
+        </div>
+      </div>
+      <div class="output-text" id="output-text">
+        <span style="color:var(--ink4);font-style:italic;">Cleaned output will appear here…</span>
+      </div>
+      <div class="stats-row" id="stats-row">
+        <span class="stat-item">Lines removed: <strong id="stat-lines-removed">—</strong></span>
+        <span class="stat-item">Chars removed: <strong id="stat-chars-removed">—</strong></span>
+        <span class="stat-item">Ops applied: <strong id="stat-ops">—</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Privacy Note:</strong> All text processing happens entirely in your browser. Your text is never sent to any server or stored anywhere. This tool works fully offline once the page is loaded.
+  </div>
+</main>
+
+<section class="th-about">
+  <div class="th-about-inner">
+    <span class="th-about-eyebrow">✦ About This Tool</span>
+    <div class="th-about-grid">
+      <div>
+        <h2>Why we built the Text Organizer</h2>
+        <p>AI-generated text and copy-pasted content tend to arrive with the same tells: stray markdown asterisks and hashes, curly "smart quotes" that break when pasted into code, duplicate lines from a bad paste, double em-dashes, and inconsistent spacing. Cleaning that up by hand, line by line, gets old fast. This tool runs a set of targeted cleanup passes over pasted text and shows you a live diff of exactly what changed.</p>
+        <p>It strips leftover <strong>markdown formatting</strong>, normalises quotes and dashes to plain ASCII, collapses duplicate blank lines and repeated sentences, and trims trailing whitespace — all as independent toggles, so you only apply the cleanups you actually want before pasting the result into an email, a doc, or a CMS.</p>
+      </div>
+      <div class="th-facts">
+        <div class="th-fact"><div class="th-fact-k">Privacy</div><div class="th-fact-v">100% offline. Your text is processed in-browser and never touches a server.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Cleans</div><div class="th-fact-v">Markdown artefacts, smart quotes, duplicate lines/sentences, stray dashes and whitespace.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Output</div><div class="th-fact-v">A live before/after diff, so you can see exactly what each cleanup pass changed.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="th-footer">
+  <span>Made with ❤️ by <a href="https://www.teenywriter.dpdns.org">Teenywriter</a> &nbsp;·&nbsp; Designed by <a href="https://www.pixelshade.in">PixelShade Design Studios</a></span>
+  <a href="index.html">← Back to NEVR</a>
+</footer>
+
+<script>
+/* ── CHIP TOGGLES ── */
+const caseOps = ['case-sentence','case-title','case-lower','case-upper'];
+const encOps  = ['url-encode','url-decode','base64-enc','base64-dec'];
+const sortOps = ['sort-az','sort-za'];
+
+document.querySelectorAll('.toggle-chip').forEach(chip => {
+  chip.addEventListener('click', () => toggle(chip));
+  chip.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(chip);} });
+});
+
+function toggle(chip) {
+  const op = chip.dataset.op;
+  const isOn = chip.classList.contains('on');
+
+  // Exclusive groups
+  if(caseOps.includes(op) && !isOn) {
+    caseOps.forEach(c => {
+      const el = document.querySelector(`[data-op="${c}"]`);
+      el?.classList.remove('on');
+    });
+  }
+  if(encOps.includes(op) && !isOn) {
+    encOps.forEach(c => document.querySelector(`[data-op="${c}"]`)?.classList.remove('on'));
+  }
+  if(sortOps.includes(op) && !isOn) {
+    sortOps.forEach(c => document.querySelector(`[data-op="${c}"]`)?.classList.remove('on'));
+  }
+
+  chip.classList.toggle('on', !isOn);
+  processText();
+}
+
+function isOn(op) { return document.querySelector(`[data-op="${op}"]`)?.classList.contains('on'); }
+
+/* ── PROCESSING ── */
+let lastOutput = '';
+
+function processText() {
+  const raw = document.getElementById('input-text').value;
+  const diffMode = document.getElementById('diff-mode').checked;
+
+  // Update input stats
+  updateMeta('input-meta', raw);
+
+  if (!raw.trim()) {
+    document.getElementById('output-text').innerHTML = '<span style="color:var(--ink4);font-style:italic;">Cleaned output will appear here…</span>';
+    updateMeta('output-meta','');
+    setStats(0,0,0);
+    return;
+  }
+
+  let text = raw;
+  let opsApplied = 0;
+
+  // ── TRANSFORMS ──
+  if(isOn('strip-markdown')) {
+    text = text.replace(/^#{1,6}\s+/gm,'');         // headings
+    text = text.replace(/\*\*(.+?)\*\*/g,'$1');      // bold
+    text = text.replace(/\*(.+?)\*/g,'$1');           // italic
+    text = text.replace(/__(.+?)__/g,'$1');
+    text = text.replace(/_(.+?)_/g,'$1');
+    text = text.replace(/~~(.+?)~~/g,'$1');           // strikethrough
+    text = text.replace(/`{1,3}[^`]*`{1,3}/g,'');    // code
+    text = text.replace(/\[(.+?)\]\(.+?\)/g,'$1');   // links
+    text = text.replace(/!\[.*?\]\(.+?\)/g,'');       // images
+    text = text.replace(/^>\s+/gm,'');                // blockquotes
+    text = text.replace(/^---+$/gm,'');               // hr
+    opsApplied++;
+  }
+
+  if(isOn('strip-hashtags')) {
+    text = text.replace(/#\w+/g,'');
+    opsApplied++;
+  }
+
+  if(isOn('strip-emojis')) {
+    text = text.replace(/[\u{1F300}-\u{1FFFF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]/gu,'');
+    opsApplied++;
+  }
+
+  if(isOn('strip-bullets')) {
+    text = text.replace(/^[\s]*[-*•·▸▹◦∙]\s+/gm,'');
+    text = text.replace(/^[\s]*\d+[.)]\s+/gm,'');
+    opsApplied++;
+  }
+
+  if(isOn('trim-lines')) {
+    text = text.split('\n').map(l=>l.trim()).join('\n');
+    opsApplied++;
+  }
+
+  if(isOn('remove-blank')) {
+    text = text.replace(/\n{3,}/g,'\n\n');
+    text = text.split('\n').filter(l=>l.trim()!=='').join('\n');
+    opsApplied++;
+  }
+
+  if(isOn('fix-spaces')) {
+    text = text.replace(/  +/g,' ');
+    opsApplied++;
+  }
+
+  if(isOn('remove-dup-lines')) {
+    const seen = new Set();
+    text = text.split('\n').filter(line => {
+      const k = line.trim().toLowerCase();
+      if(seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    }).join('\n');
+    opsApplied++;
+  }
+
+  if(isOn('remove-dup-words')) {
+    text = text.split('\n').map(line => {
+      const words = line.split(/\s+/);
+      const seen = new Set();
+      return words.filter(w=>{const k=w.toLowerCase();if(seen.has(k))return false;seen.add(k);return true;}).join(' ');
+    }).join('\n');
+    opsApplied++;
+  }
+
+  // Typography
+  if(isOn('em-dashes')) {
+    text = text.replace(/--/g,'—');
+    opsApplied++;
+  }
+
+  if(isOn('ellipsis')) {
+    text = text.replace(/\.{3}/g,'…');
+    opsApplied++;
+  }
+
+  if(isOn('smart-quotes')) {
+    // Opening double quotes: after space/start/punct
+    text = text.replace(/(^|\s|[([{])"([^\s])/g,'$1\u201C$2');
+    // Closing double quotes
+    text = text.replace(/"(\s|[)\]},;.!?]|$)/g,'\u201D$1');
+    // Any remaining straight doubles
+    text = text.replace(/"([^"]*?)"/g,'\u201C$1\u201D');
+    // Opening single
+    text = text.replace(/(^|\s|[([{])'([^\s])/g,'$1\u2018$2');
+    // Closing / apostrophe
+    text = text.replace(/'(\s|[)\]},;.!?]|$)/g,'\u2019$1');
+    text = text.replace(/(\w)'(\w)/g,'$1\u2019$2');
+    opsApplied++;
+  }
+
+  // Casing
+  if(isOn('case-lower')) { text=text.toLowerCase(); opsApplied++; }
+  if(isOn('case-upper')) { text=text.toUpperCase(); opsApplied++; }
+  if(isOn('case-sentence')) {
+    text = text.split(/([.!?]\s+)/).map((seg,i)=> i%2===0 ? seg.charAt(0).toUpperCase()+seg.slice(1).toLowerCase() : seg).join('');
+    opsApplied++;
+  }
+  if(isOn('case-title')) {
+    const small = new Set(['a','an','the','and','but','or','for','nor','on','at','to','by','in','of','up','as','is','it']);
+    text = text.split('\n').map(line =>
+      line.split(' ').map((w,i) => {
+        const lw = w.toLowerCase();
+        return (i===0||!small.has(lw)) ? w.charAt(0).toUpperCase()+w.slice(1).toLowerCase() : lw;
+      }).join(' ')
+    ).join('\n');
+    opsApplied++;
+  }
+
+  // Sorting
+  if(isOn('sort-az')) { text=text.split('\n').sort((a,b)=>a.localeCompare(b)).join('\n'); opsApplied++; }
+  if(isOn('sort-za')) { text=text.split('\n').sort((a,b)=>b.localeCompare(a)).join('\n'); opsApplied++; }
+
+  // Line numbering
+  if(isOn('number-lines')) {
+    text = text.split('\n').map((l,i)=>`${i+1}. ${l}`).join('\n');
+    opsApplied++;
+  }
+
+  // Encoding (these are exclusive; applied last)
+  if(isOn('url-encode')) { try{text=encodeURIComponent(text);}catch(e){}  opsApplied++; }
+  if(isOn('url-decode')) { try{text=decodeURIComponent(text);}catch(e){}  opsApplied++; }
+  if(isOn('base64-enc')) { try{text=btoa(unescape(encodeURIComponent(text)));}catch(e){} opsApplied++; }
+  if(isOn('base64-dec')) { try{text=decodeURIComponent(escape(atob(text)));}catch(e){text='[Invalid Base64]';} opsApplied++; }
+
+  lastOutput = text;
+
+  // Render output
+  const outEl = document.getElementById('output-text');
+  if(diffMode) {
+    outEl.innerHTML = renderDiff(raw, text);
+  } else {
+    outEl.textContent = text;
+  }
+
+  updateMeta('output-meta', text);
+  const charsRemoved = raw.length - text.length;
+  const linesRemoved = raw.split('\n').length - text.split('\n').length;
+  setStats(Math.max(0,linesRemoved), charsRemoved, opsApplied);
+}
+
+function renderDiff(before, after) {
+  // Simple line-level diff highlight
+  const bLines = before.split('\n');
+  const aLines = after.split('\n');
+  const aSet = new Set(aLines.map(l=>l.trim()));
+  const bSet = new Set(bLines.map(l=>l.trim()));
+
+  return aLines.map(line => {
+    const escaped = escHtml(line);
+    if(!bSet.has(line.trim())) return `<span class="diff-add">${escaped}</span>`;
+    return escaped;
+  }).join('\n');
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function updateMeta(id, text) {
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  document.getElementById(id).textContent = `${words.toLocaleString()} words · ${text.length.toLocaleString()} chars`;
+}
+
+function setStats(lines, chars, ops) {
+  document.getElementById('stat-lines-removed').textContent = lines >= 0 ? lines : '—';
+  document.getElementById('stat-chars-removed').textContent = chars !== undefined ? chars.toLocaleString() : '—';
+  document.getElementById('stat-ops').textContent = ops || '—';
+}
+
+/* ── ACTIONS ── */
+async function pasteText() {
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById('input-text').value = text;
+    processText();
+  } catch(e) {
+    document.getElementById('input-text').focus();
+    alert('Click in the text area and use Ctrl+V to paste.');
+  }
+}
+
+function clearInput() {
+  document.getElementById('input-text').value = '';
+  processText();
+}
+
+function copyOutput() {
+  if(!lastOutput) return;
+  navigator.clipboard.writeText(lastOutput).then(() => {
+    const btn = document.getElementById('copy-out-btn');
+    const orig = btn.innerHTML;
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function downloadOutput() {
+  if(!lastOutput) return;
+  const blob = new Blob([lastOutput], {type:'text/plain;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cleaned-text-${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

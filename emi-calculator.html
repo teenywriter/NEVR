@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMI Pre-Payment Saver — NEVR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#030509;--cream2:#0c1120;--cream3:#0c1120;
+  --ink:#edeff7;--ink2:#aab0cc;--ink3:#7c84a0;--ink4:#4b5170;
+  --border:#1b2440;
+  --white:#090c14;
+  --sage:#52d17c;--sage-l:rgba(82,209,124,.10);--sage-d:#2fae63;
+  --terra:#ff8a5c;--terra-l:rgba(255,138,92,.10);
+  --amber:#f2b84b;--amber-l:rgba(242,184,75,.10);
+  --radius:0;
+  --shadow:none;
+  --shadow-lg:none;
+  --mono:'JetBrains Mono',monospace;
+
+  --void:#030509;--panel:#090c14;--panel-2:#0c1120;
+  --line:#1b2440;--line-soft:#12172a;
+  --royal:#3355ff;--royal-bright:#6e85ff;--royal-dim:#1a2a80;
+  --f-display:'Space Grotesk',sans-serif;--f-body:'Inter',sans-serif;--f-mono:'JetBrains Mono',monospace;
+}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+nav{padding:.875rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+nav a{color:var(--ink3);text-decoration:none;font-size:.82rem;transition:color .2s;}
+nav a:hover{color:var(--ink);}
+.nav-sep{color:var(--border);}
+.nav-cur{color:var(--ink);font-weight:500;}
+
+main{flex:1;max-width:1080px;margin:0 auto;padding:2.5rem 2rem 3rem;width:100%;}
+
+.page-header{margin-bottom:2rem;}
+.tag{display:inline-flex;align-items:center;gap:.4rem;background:var(--amber-l);color:var(--amber);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .65rem;border-radius:0;margin-bottom:.8rem;}
+h1{font-family:'Space Grotesk',serif;font-size:2.2rem;font-weight:400;line-height:1.15;margin-bottom:.4rem;}
+h1 em{font-style:italic;color:var(--amber);}
+.subtitle{color:var(--ink3);font-size:.9rem;font-weight:300;line-height:1.6;}
+
+/* ── TWO-COL ── */
+.layout{display:grid;grid-template-columns:360px 1fr;gap:2rem;align-items:start;}
+
+/* ── INPUT PANEL ── */
+.input-panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;box-shadow:var(--shadow);}
+
+.panel-section{margin-bottom:1.5rem;}
+.panel-section:last-child{margin-bottom:0;}
+.panel-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink4);margin-bottom:1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);}
+
+.field{margin-bottom:.9rem;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:.78rem;font-weight:500;color:var(--ink2);margin-bottom:.3rem;}
+.field-row{display:grid;grid-template-columns:auto 1fr;align-items:center;}
+.prefix{padding:.55rem .75rem;background:var(--cream2);border:1.5px solid var(--border);border-right:none;border-radius:0 0 0 8px;font-size:.82rem;color:var(--ink3);font-weight:500;white-space:nowrap;}
+.field input,.field select{
+  width:100%;padding:.55rem .75rem;border:1.5px solid var(--border);border-radius:0;
+  background:var(--cream);font-family:'Inter',sans-serif;font-size:.9rem;color:var(--ink);
+  outline:none;transition:border-color .2s,background .2s;appearance:none;
+}
+.field-row input{border-radius:0 8px 8px 0;}
+.field input:focus,.field-row input:focus,.field select:focus{border-color:var(--amber);background:var(--white);}
+
+/* Slider */
+.slider-wrap{margin-top:.4rem;}
+.range-track{position:relative;height:4px;background:var(--cream3);border-radius:0;margin:0 .4rem;}
+.range-fill{position:absolute;height:100%;background:var(--amber);border-radius:0;transition:width .1s;}
+input[type=range]{
+  width:100%;-webkit-appearance:none;appearance:none;height:4px;background:transparent;
+  cursor:pointer;margin-bottom:.4rem;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--amber);border:2px solid var(--white);box-shadow:0 1px 4px rgba(0,0,0,0.2);
+  cursor:pointer;transition:transform .15s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--amber);border:2px solid var(--white);cursor:pointer;}
+.slider-labels{display:flex;justify-content:space-between;font-size:.65rem;color:var(--ink4);}
+
+/* Prepayment slider highlight */
+.prepay-slider input[type=range]::-webkit-slider-thumb{background:var(--sage);}
+.prepay-slider .range-fill{background:var(--sage);}
+
+/* ── RESULTS ── */
+.results-col{display:flex;flex-direction:column;gap:1.25rem;}
+
+/* Saving banner */
+.saving-banner{background:linear-gradient(135deg,var(--sage-d),var(--sage));border-radius:var(--radius);padding:1.25rem 1.5rem;color:var(--white);display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;}
+.saving-banner.hidden{display:none;}
+.saving-item{}
+.saving-label{font-size:.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-bottom:.2rem;}
+.saving-value{font-family:var(--mono);font-size:1.4rem;font-weight:500;}
+.saving-sub{font-size:.72rem;opacity:.7;margin-top:.1rem;}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;box-shadow:var(--shadow);}
+.stat-card.accent-terra{border-left:3px solid var(--terra);}
+.stat-card.accent-amber{border-left:3px solid var(--amber);}
+.stat-card.accent-sage{border-left:3px solid var(--sage);}
+.stat-card.accent-ink{border-left:3px solid var(--ink);}
+.stat-label{font-size:.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink4);margin-bottom:.35rem;}
+.stat-val{font-family:var(--mono);font-size:1.15rem;font-weight:500;color:var(--ink);}
+.stat-sub{font-size:.72rem;color:var(--ink3);margin-top:.2rem;}
+
+/* Chart comparison */
+.compare-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;box-shadow:var(--shadow);}
+.compare-title{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink4);margin-bottom:1rem;}
+.bar-group{margin-bottom:1rem;}
+.bar-group:last-child{margin-bottom:0;}
+.bar-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;}
+.bar-name{font-size:.78rem;font-weight:500;color:var(--ink2);}
+.bar-amount{font-family:var(--mono);font-size:.78rem;color:var(--ink2);}
+.bar-track{height:10px;background:var(--cream2);border-radius:0;overflow:hidden;}
+.bar-fill{height:100%;border-radius:0;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.bar-fill.terra{background:var(--terra);}
+.bar-fill.sage{background:var(--sage);}
+.bar-fill.amber{background:var(--amber);}
+.bar-fill.ink{background:var(--ink3);}
+.bar-sub{font-size:.68rem;color:var(--ink4);margin-top:.2rem;}
+
+/* Amortization toggle */
+.amort-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.amort-header{padding:.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);}
+.amort-header:hover{background:var(--cream);}
+.amort-htitle{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);}
+.amort-toggle-icon{color:var(--ink4);transition:transform .2s;}
+.amort-toggle-icon.open{transform:rotate(180deg);}
+.amort-body{display:none;overflow-x:auto;max-height:340px;overflow-y:auto;}
+.amort-body.open{display:block;}
+.amort-body::-webkit-scrollbar{width:4px;height:4px;}
+.amort-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:0;}
+table.amort{width:100%;border-collapse:collapse;font-size:.75rem;}
+table.amort thead th{padding:.4rem .75rem;background:var(--cream2);font-size:.63rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink4);text-align:right;position:sticky;top:0;}
+table.amort thead th:first-child{text-align:left;}
+table.amort tbody td{padding:.35rem .75rem;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);font-size:.72rem;color:var(--ink2);}
+table.amort tbody td:first-child{text-align:left;color:var(--ink3);font-family:'Inter',sans-serif;}
+table.amort tbody tr:hover td{background:var(--cream);}
+table.amort tbody tr:last-child td{border-bottom:none;}
+.prepay-row td{background:var(--sage-l)!important;color:var(--sage-d)!important;}
+
+/* Disclaimer */
+.disclaimer{font-size:.72rem;color:var(--ink3);line-height:1.55;border-top:1px solid var(--border);padding-top:1.2rem;margin-top:1.5rem;}
+.disclaimer strong{color:var(--ink2);}
+
+footer{border-top:1px solid var(--border);padding:1.2rem 2rem;text-align:center;font-size:.78rem;color:var(--ink3);}
+footer a{color:var(--ink2);text-decoration:none;}
+footer a:hover{color:var(--ink);}
+
+@media(max-width:760px){.layout{grid-template-columns:1fr;}.stats-grid{grid-template-columns:1fr 1fr;}}
+
+/* ══════════ NEVR shared chrome ══════════ */
+.th-nav{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:0 2rem;height:58px;background:rgba(3,5,9,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;}
+.th-brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;flex-shrink:0;}
+.th-brand-mark{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.th-crumb{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--ink3);min-width:0;}
+.th-crumb a{color:inherit;text-decoration:none;transition:color .2s;}
+.th-crumb a:hover{color:var(--royal-bright);}
+.th-crumb .th-sep{color:var(--ink4,var(--ink3));}
+.th-crumb .th-cur{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.th-nav-extra{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.th-about{max-width:1080px;margin:0 auto;padding:4rem 2rem 3.5rem;}
+.th-about-inner{border-top:1px solid var(--line-soft);padding-top:3.5rem;}
+.th-about-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);border:1px solid var(--line);padding:6px 12px;background:rgba(51,85,255,.06);margin-bottom:20px;}
+.th-about h2{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,2.4vw,28px);letter-spacing:-.01em;line-height:1.25;margin-bottom:18px;max-width:34ch;color:var(--ink);}
+.th-about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start;}
+.th-about p{color:var(--ink3);font-size:14px;line-height:1.75;margin-bottom:13px;font-family:var(--f-body);font-weight:300;}
+.th-about p:last-child{margin-bottom:0;}
+.th-about p strong{color:var(--ink);font-weight:600;}
+.th-facts{border:1px solid var(--line);background:var(--panel-2);}
+.th-fact{padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+.th-fact:last-child{border-bottom:none;}
+.th-fact-k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--royal-bright);margin-bottom:6px;}
+.th-fact-v{font-size:13px;color:var(--ink);line-height:1.55;font-family:var(--f-body);}
+
+.th-footer{border-top:1px solid var(--line-soft);padding:24px 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--ink3);}
+.th-footer a{color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px;text-decoration:none;}
+.th-footer a:hover{color:var(--royal-bright);border-color:var(--royal);}
+
+@media (max-width:640px){
+  .th-about{padding:3rem 1.2rem;}
+  .th-about-grid{grid-template-columns:1fr;gap:28px;}
+  .th-nav{padding:0 1.2rem;gap:10px;height:auto;min-height:54px;}
+  .th-footer{padding:18px 1.2rem;flex-direction:column;align-items:flex-start;}
+}
+
+</style>
+</head>
+<body>
+
+<nav class="th-nav">
+  <a href="index.html" class="th-brand"><img src="nevrwhite.png" class="th-brand-mark" alt="NEVR"></a>
+  <div class="th-crumb"><a href="index.html"></a><span class="th-sep">/</span><span class="th-cur">EMI Pre-Payment Saver</span></div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <div class="tag">💰 Financial Defense Tool</div>
+    <h1>EMI & <em>Pre-Payment</em> Saver</h1>
+    <p class="subtitle">See exactly how much interest you save by paying a little extra every month. No bank account needed.</p>
+  </div>
+
+  <div class="layout">
+
+    <!-- INPUTS -->
+    <div class="input-panel">
+
+      <div class="panel-section">
+        <div class="panel-title">Loan Details</div>
+
+        <div class="field">
+          <label>Loan Amount</label>
+          <div class="field-row">
+            <div class="prefix">₹</div>
+            <input type="number" id="principal" value="2500000" min="10000" step="1000" oninput="calc()">
+          </div>
+          <div class="slider-wrap">
+            <input type="range" id="principal-r" min="100000" max="10000000" step="50000" value="2500000" oninput="sync('principal',this.value);calc()">
+            <div class="slider-labels"><span>₹1L</span><span>₹1Cr</span></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Annual Interest Rate</label>
+          <div class="field-row">
+            <div class="prefix">%</div>
+            <input type="number" id="rate" value="8.5" min="1" max="30" step="0.1" oninput="calc()">
+          </div>
+          <div class="slider-wrap">
+            <input type="range" id="rate-r" min="1" max="20" step="0.1" value="8.5" oninput="sync('rate',this.value);calc()">
+            <div class="slider-labels"><span>1%</span><span>20%</span></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Loan Tenure</label>
+          <div class="field-row">
+            <div class="prefix">Yrs</div>
+            <input type="number" id="tenure" value="20" min="1" max="30" step="1" oninput="calc()">
+          </div>
+          <div class="slider-wrap">
+            <input type="range" id="tenure-r" min="1" max="30" step="1" value="20" oninput="sync('tenure',this.value);calc()">
+            <div class="slider-labels"><span>1 yr</span><span>30 yrs</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Extra Monthly Payment (Pre-Payment)</div>
+        <div class="field prepay-slider">
+          <label>Extra Amount per Month</label>
+          <div class="field-row">
+            <div class="prefix">₹</div>
+            <input type="number" id="extra" value="5000" min="0" step="500" oninput="calc()">
+          </div>
+          <div class="slider-wrap">
+            <input type="range" id="extra-r" min="0" max="50000" step="500" value="5000" oninput="sync('extra',this.value);calc()">
+            <div class="slider-labels"><span>₹0</span><span>₹50,000</span></div>
+          </div>
+        </div>
+        <div style="font-size:.72rem;color:var(--sage);background:var(--sage-l);padding:.5rem .75rem;border-radius:0;margin-top:.25rem;">
+          💡 Even ₹1,000/month extra can save lakhs in interest over time.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-col">
+
+      <!-- Saving Banner -->
+      <div class="saving-banner" id="saving-banner">
+        <div class="saving-item">
+          <div class="saving-label">Interest Saved</div>
+          <div class="saving-value" id="sv-interest">—</div>
+          <div class="saving-sub">with your extra payment</div>
+        </div>
+        <div class="saving-item">
+          <div class="saving-label">Time Saved</div>
+          <div class="saving-value" id="sv-time">—</div>
+          <div class="saving-sub">loan closes earlier</div>
+        </div>
+        <div class="saving-item">
+          <div class="saving-label">New Tenure</div>
+          <div class="saving-value" id="sv-newtenure">—</div>
+          <div class="saving-sub">vs <span id="sv-origtenure">—</span> originally</div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card accent-ink">
+          <div class="stat-label">Monthly EMI</div>
+          <div class="stat-val" id="st-emi">—</div>
+          <div class="stat-sub">Fixed EMI (no extra)</div>
+        </div>
+        <div class="stat-card accent-amber">
+          <div class="stat-label">Effective Monthly</div>
+          <div class="stat-val" id="st-effective">—</div>
+          <div class="stat-sub">EMI + extra payment</div>
+        </div>
+        <div class="stat-card accent-terra">
+          <div class="stat-label">Total Interest (Normal)</div>
+          <div class="stat-val" id="st-int-normal">—</div>
+          <div class="stat-sub" id="st-int-normal-sub">—</div>
+        </div>
+        <div class="stat-card accent-sage">
+          <div class="stat-label">Total Interest (Prepaid)</div>
+          <div class="stat-val" id="st-int-pre">—</div>
+          <div class="stat-sub" id="st-int-pre-sub">—</div>
+        </div>
+      </div>
+
+      <!-- Bar Comparison -->
+      <div class="compare-card">
+        <div class="compare-title">Payment Breakdown Comparison</div>
+        <div class="bar-group">
+          <div class="bar-meta"><span class="bar-name">Principal</span><span class="bar-amount" id="bc-principal">—</span></div>
+          <div class="bar-track"><div class="bar-fill ink" id="bar-principal" style="width:0%"></div></div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-meta"><span class="bar-name">Interest — Normal</span><span class="bar-amount" id="bc-int-n">—</span></div>
+          <div class="bar-track"><div class="bar-fill terra" id="bar-int-n" style="width:0%"></div></div>
+          <div class="bar-sub" id="bc-int-n-pct"></div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-meta"><span class="bar-name">Interest — With Pre-payment</span><span class="bar-amount" id="bc-int-p">—</span></div>
+          <div class="bar-track"><div class="bar-fill sage" id="bar-int-p" style="width:0%"></div></div>
+          <div class="bar-sub" id="bc-int-p-pct"></div>
+        </div>
+      </div>
+
+      <!-- Amortization -->
+      <div class="amort-card">
+        <div class="amort-header" onclick="toggleAmort()">
+          <span class="amort-htitle">Amortization Schedule (Year-wise)</span>
+          <svg class="amort-toggle-icon" id="amort-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="amort-body" id="amort-body">
+          <table class="amort">
+            <thead><tr><th>Year</th><th>Opening</th><th>Principal</th><th>Interest</th><th>Extra</th><th>Closing</th></tr></thead>
+            <tbody id="amort-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        <strong>Disclaimer:</strong> All calculations are estimates based on a standard reducing-balance amortization model. Actual loan figures may vary based on your lender's method, fees, processing charges, and GST on EMI. This tool does not constitute financial advice. Please consult your bank or a financial advisor before making prepayment decisions.
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<section class="th-about">
+  <div class="th-about-inner">
+    <span class="th-about-eyebrow">✦ About This Tool</span>
+    <div class="th-about-grid">
+      <div>
+        <h2>Why we built the EMI Pre-Payment Saver</h2>
+        <p>Bank apps show you an EMI amount. Almost none of them clearly show what happens if you make a lump-sum or recurring pre-payment — how much interest you actually save, and how many months you shave off the loan. That gap is the entire reason this tool exists: enter your loan amount, rate, and tenure, add an optional pre-payment, and see the two amortisation paths — normal vs. with pre-payment — side by side.</p>
+        <p>The maths follows the standard <strong>reducing-balance EMI formula</strong> banks use in India, recomputed month by month so extra payments correctly shrink the principal (and therefore the interest) from that point forward, rather than just being subtracted at the end. The year-by-year breakdown table lets you sanity-check the numbers against your own bank statement.</p>
+      </div>
+      <div class="th-facts">
+        <div class="th-fact"><div class="th-fact-k">Privacy</div><div class="th-fact-v">All maths runs locally. Your loan amount and income details never leave this page.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Method</div><div class="th-fact-v">Standard reducing-balance EMI calculation, recomputed monthly for accurate pre-payment savings.</div></div>
+        <div class="th-fact"><div class="th-fact-k">Output</div><div class="th-fact-v">Interest saved, months saved, and a full year-by-year amortisation table.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="th-footer">
+  <span>Made with ❤️ by <a href="https://www.teenywriter.dpdns.org">Teenywriter</a> &nbsp;·&nbsp; Designed by <a href="https://www.pixelshade.in">PixelShade Design Studios</a></span>
+  <a href="index.html">← Back to NEVR</a>
+</footer>
+
+<script>
+function fmt(n,dec=0){return n.toLocaleString('en-IN',{minimumFractionDigits:dec,maximumFractionDigits:dec});}
+function fmtL(n){
+  if(n>=10000000)return '₹'+fmt(n/10000000,2)+' Cr';
+  if(n>=100000)return '₹'+fmt(n/100000,2)+' L';
+  return '₹'+fmt(n);
+}
+function fmtMo(months){
+  const y=Math.floor(months/12),m=months%12;
+  return y>0?(m>0?`${y}y ${m}m`:`${y} yrs`):`${m} mo`;
+}
+
+function sync(id,val){
+  document.getElementById(id).value=val;
+}
+
+function getVal(id){return parseFloat(document.getElementById(id).value)||0;}
+
+function calc(){
+  // Sync sliders
+  ['principal','rate','tenure','extra'].forEach(id=>{
+    const inp=document.getElementById(id);
+    const rng=document.getElementById(id+'-r');
+    if(rng&&inp){
+      const v=parseFloat(inp.value)||0;
+      rng.value=Math.min(Math.max(v,parseFloat(rng.min)),parseFloat(rng.max));
+    }
+  });
+
+  const P=getVal('principal');
+  const annualRate=getVal('rate');
+  const tenureYears=getVal('tenure');
+  const extra=getVal('extra');
+
+  if(!P||!annualRate||!tenureYears)return;
+
+  const r=annualRate/12/100;
+  const n=tenureYears*12;
+
+  // Standard EMI
+  const emi=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  const totalNormal=emi*n;
+  const intNormal=totalNormal-P;
+
+  // Amortization with extra payment
+  let bal=P, totalIntPre=0, mo=0;
+  const schedule=[];
+  const yearlyData={};
+
+  while(bal>1 && mo<n*3){
+    mo++;
+    const intCharge=bal*r;
+    let prinCharge=emi-intCharge;
+    let extraPaid=0;
+    if(bal-prinCharge>0){
+      extraPaid=Math.min(extra, bal-prinCharge);
+    }
+    const totalPrin=Math.min(prinCharge+extraPaid,bal);
+    totalIntPre+=intCharge;
+    const openBal=bal;
+    bal=Math.max(0,bal-totalPrin);
+
+    const yr=Math.ceil(mo/12);
+    if(!yearlyData[yr]) yearlyData[yr]={open:openBal,prin:0,int:0,extra:0,close:0};
+    yearlyData[yr].prin+=prinCharge;
+    yearlyData[yr].int+=intCharge;
+    yearlyData[yr].extra+=extraPaid;
+    yearlyData[yr].close=bal;
+    if(bal<=0) break;
+  }
+
+  const moSaved=n-mo;
+  const intSaved=intNormal-totalIntPre;
+
+  // Update UI
+  document.getElementById('st-emi').textContent=fmtL(emi);
+  document.getElementById('st-effective').textContent=fmtL(emi+extra);
+  document.getElementById('st-int-normal').textContent=fmtL(intNormal);
+  document.getElementById('st-int-normal-sub').textContent=`Total outgo: ${fmtL(totalNormal)}`;
+  document.getElementById('st-int-pre').textContent=fmtL(totalIntPre);
+  document.getElementById('st-int-pre-sub').textContent=`Total outgo: ${fmtL(P+totalIntPre)}`;
+
+  // Saving banner
+  document.getElementById('sv-interest').textContent=fmtL(Math.max(0,intSaved));
+  document.getElementById('sv-time').textContent=moSaved>0?fmtMo(moSaved):'0';
+  document.getElementById('sv-newtenure').textContent=fmtMo(mo);
+  document.getElementById('sv-origtenure').textContent=fmtMo(n);
+
+  // Bar chart
+  const maxAmt=Math.max(P,intNormal,totalIntPre);
+  document.getElementById('bc-principal').textContent=fmtL(P);
+  document.getElementById('bc-int-n').textContent=fmtL(intNormal);
+  document.getElementById('bc-int-p').textContent=fmtL(totalIntPre);
+  document.getElementById('bar-principal').style.width=(P/maxAmt*100)+'%';
+  document.getElementById('bar-int-n').style.width=(intNormal/maxAmt*100)+'%';
+  document.getElementById('bar-int-p').style.width=(totalIntPre/maxAmt*100)+'%';
+  document.getElementById('bc-int-n-pct').textContent=`${fmt(intNormal/P*100,1)}% of principal`;
+  document.getElementById('bc-int-p-pct').textContent=`${fmt(totalIntPre/P*100,1)}% of principal`;
+
+  // Amortization table
+  let tbody='';
+  Object.entries(yearlyData).forEach(([yr,d])=>{
+    const highlight=d.extra>0?' class="prepay-row"':'';
+    tbody+=`<tr${highlight}><td>${yr}</td><td>₹${fmt(d.open)}</td><td>₹${fmt(d.prin)}</td><td>₹${fmt(d.int)}</td><td>${d.extra>0?'₹'+fmt(d.extra):'—'}</td><td>₹${fmt(d.close)}</td></tr>`;
+  });
+  document.getElementById('amort-tbody').innerHTML=tbody;
+}
+
+function toggleAmort(){
+  const body=document.getElementById('amort-body');
+  const icon=document.getElementById('amort-icon');
+  body.classList.toggle('open');
+  icon.classList.toggle('open');
+}
+
+// Init
+calc();
+</script>
+</body>
+</html>
