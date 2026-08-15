@@ -889,7 +889,7 @@ The driving mission behind NEVR has always been simple: to help people save time
             if (!alive()) return;
             body.classList.add('is-chaos');
             appendLine('<span class="err">' + r.err + '</span>');
-            return wait(300);
+            return wait(3000);
           }).then(function(){
             if (!alive()) return;
             appendLine('<span class="rant">' + r.rant + '</span>');
